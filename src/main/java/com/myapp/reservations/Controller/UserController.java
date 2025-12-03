@@ -2,6 +2,7 @@ package com.myapp.reservations.Controller;
 
 import com.myapp.reservations.DTO.UserDto;
 import com.myapp.reservations.Services.UserService;
+import com.myapp.reservations.entities.Role;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class UserController {
 
     @GetMapping()
     public List<UserDto> findAll(){
-        return  userService.getUsers();
+        return   userService.getUsers();
     }
 
     @GetMapping("/{id}")
@@ -31,8 +32,13 @@ public class UserController {
         return userService.save(userDto);
     }
 
-    @GetMapping("/{name}")
+    @GetMapping("/by-name/{name}")
     public UserDto findByName(@PathVariable (value = "name") String name){
         return userService.findByName(name);
+    }
+
+    @GetMapping("/by-role/{role}")
+    public List<UserDto> findByRole(@PathVariable (value = "role") Role role){
+        return userService.getUsersByRole(role);
     }
 }

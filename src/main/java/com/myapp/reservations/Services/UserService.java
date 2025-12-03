@@ -3,12 +3,14 @@ package com.myapp.reservations.Services;
 import com.myapp.reservations.DTO.UserDto;
 import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.UserRepository;
+import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -22,9 +24,11 @@ public class UserService {
 
     public List<UserDto> getUsers() {
         return userRepository.findAll()
-                .stream().map(UserMapper::toDto)
-                .toList();
+                .stream()
+                .map(UserMapper::toDto)
+                .collect(Collectors.toList());
     }
+
 
     public UserDto findByName(String name){
         if(name==null){
@@ -64,9 +68,20 @@ public class UserService {
     public UserDto save(UserDto userDto) {
         if(userDto == null) return null;
         User user = UserMapper.toUser(userDto);
+        user.setPassword("password");
         User savedUser = userRepository.save(user);
         return UserMapper.toDto(savedUser);
     }
+
+    public List<UserDto> getUsersByRole(Role role) {
+        if(role==null){
+            return null;
+        }
+        return userRepository.findByRole(role)
+                .stream()
+                .map(UserMapper::toDto)
+                .toList();
+        }
 
 
 
