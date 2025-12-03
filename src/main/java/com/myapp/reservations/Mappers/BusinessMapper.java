@@ -1,20 +1,22 @@
 package com.myapp.reservations.Mappers;
 
-import com.myapp.reservations.DTO.BusinessDTO;
+import com.myapp.reservations.DTO.BusinessDto;
 import com.myapp.reservations.entities.Business;
+
+import java.util.Optional;
 
 public class BusinessMapper {
 
-    public static BusinessDTO ToDto(Business business)
+    public static BusinessDto toDto(Business business)
     {
         if(business==null)
         {
             return null;
         }
-        return new BusinessDTO(business.getId(), business.getName(), business.getOwner(), business.getAdmins());
+        return new BusinessDto(business.getId(), business.getName(), business.getOwner(), business.getAdmins());
     }
 
-    public static Business ToBusiness(BusinessDTO businessDto){
+    public static Business ToBusiness(BusinessDto businessDto){
         if(businessDto==null)
         {
             return null;
@@ -26,4 +28,5 @@ public class BusinessMapper {
         business.setAdmins(businessDto.admins());
         return business;
     }
+
 }

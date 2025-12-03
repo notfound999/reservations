@@ -83,6 +83,12 @@ public class UserService {
                 .toList();
         }
 
+    public void deleteUserById(UUID id) {
+        if(id == null) {
+            return;
+        }
+        userRepository.deleteById(id);
+    }
 
 
 }
