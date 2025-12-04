@@ -65,10 +65,8 @@ public class UserService {
         return user.isPresent();
     }
 
-    public UserDto save(UserDto userDto) {
-        if(userDto == null) return null;
-        User user = UserMapper.toUser(userDto);
-        user.setPassword("password");
+    public UserDto createUser(User user) {
+        if(user == null) return null;
         User savedUser = userRepository.save(user);
         return UserMapper.toDto(savedUser);
     }
@@ -89,6 +87,20 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
+    public void updateUser(UUID id, User user) {
+        if(user == null || id == null) return;
+
+        User userToUpdate = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        userToUpdate.setName(user.getName());
+        userToUpdate.setEmail(user.getEmail());
+        userToUpdate.setPassword(user.getPassword());
+
+        userRepository.save(userToUpdate);
+    }
+
 
 
 }

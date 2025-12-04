@@ -3,6 +3,8 @@ package com.myapp.reservations.Controller;
 import com.myapp.reservations.DTO.UserDto;
 import com.myapp.reservations.Services.UserService;
 import com.myapp.reservations.entities.Role;
+import com.myapp.reservations.entities.User;
+import jakarta.persistence.PostUpdate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,8 +30,8 @@ public class UserController {
     }
 
     @PostMapping()
-    public UserDto save(@RequestBody UserDto userDto){
-        return userService.save(userDto);
+    public UserDto save(@RequestBody User user){
+        return userService.createUser(user);
     }
 
     @GetMapping("/by-name/{name}")
@@ -40,5 +42,17 @@ public class UserController {
     @GetMapping("/by-role/{role}")
     public List<UserDto> findByRole(@PathVariable (value = "role") Role role){
         return userService.getUsersByRole(role);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteById(@PathVariable (value = "id") UUID id){
+        if(userService.findById(id) == null) return;
+        userService.deleteUserById(id);
+    }
+
+    @PutMapping("/update/{id}")
+    public void update(@PathVariable (value = "id") UUID id, @RequestBody User user){
+        if(user == null || id == null) return ;
+        userService.updateUser(id, user);
     }
 }

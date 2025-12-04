@@ -54,11 +54,20 @@ public class BusinessService {
         List<Business> businesses = businessRepository.getAllBusinessByUserId(user.get().getId());
         return businesses.stream().map(BusinessMapper::toDto).toList();
     }
+
     public void deleteBusinessById(UUID id) {
         if(id == null) {
             return;
         }
         businessRepository.deleteById(id);
+    }
+
+    public BusinessDto createBusiness(Business business) {
+        if(business == null) {
+            return null;
+        }
+        businessRepository.save(business);
+        return BusinessMapper.toDto(business);
     }
 
 
