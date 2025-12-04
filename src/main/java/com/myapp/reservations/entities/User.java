@@ -34,6 +34,9 @@ public class User {
     @Column(name = "user_role")
     private Role role;
 
+    @Column(name = "user_phone")
+    private String phone;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

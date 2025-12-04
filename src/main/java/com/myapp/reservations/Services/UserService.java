@@ -1,10 +1,12 @@
 package com.myapp.reservations.Services;
 
-import com.myapp.reservations.DTO.UserDto;
+import com.myapp.reservations.DTO.UserRequest;
+import com.myapp.reservations.DTO.UserResponse;
 import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.UserRepository;
 import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,39 +24,39 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public List<UserDto> getUsers() {
+    public List<UserResponse> getUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(UserMapper::toDto)
+                .map(UserMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
 
-    public UserDto findByName(String name){
+    public UserResponse findByName(String name){
         if(name==null){
             return null;
         }
         Optional<User> user = userRepository.findByName(name);
-        return user.map(UserMapper::toDto).orElse(null);
+        return user.map(UserMapper::toResponse).orElse(null);
     }
 
 
-    public UserDto findById(UUID id) {
+    public UserResponse findById(UUID id) {
 
         if(id==null){
             return null;
         }
         Optional<User> user = userRepository.findById(id);
-        return user.map(UserMapper::toDto).orElse(null);
+        return user.map(UserMapper::toResponse).orElse(null);
 
     }
 
-    public UserDto findByEmail(String email){
+    public UserResponse findByEmail(String email){
         if(email==null){
             return null;
         }
         Optional<User> user = userRepository.findByEmail(email);
-        return user.map(UserMapper::toDto).orElse(null);
+        return user.map(UserMapper::toResponse).orElse(null);
     }
 
     public boolean existsByEmail(String email){
@@ -65,19 +67,22 @@ public class UserService {
         return user.isPresent();
     }
 
-    public UserDto createUser(User user) {
-        if(user == null) return null;
+    @Transactional
+    public UserResponse createUser(UserRequest request) {
+        if (request == null) return null;
+
+        User user = UserMapper.toUser(request);
         User savedUser = userRepository.save(user);
-        return UserMapper.toDto(savedUser);
+        return UserMapper.toResponse(savedUser);
     }
 
-    public List<UserDto> getUsersByRole(Role role) {
+    public List<UserResponse> getUsersByRole(Role role) {
         if(role==null){
             return null;
         }
         return userRepository.findByRole(role)
                 .stream()
-                .map(UserMapper::toDto)
+                .map(UserMapper::toResponse)
                 .toList();
         }
 

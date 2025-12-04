@@ -25,7 +25,7 @@ public class Business {
     @Column(name = "b_id",unique = true, nullable = false)
     private UUID id;
 
-    @Column(name = "b_name" ,length = 100)
+    @Column(name = "b_name" ,length = 100,unique = true)
     private String name;
 
     @Column(name = "b_description" , length = 1000)

@@ -1,10 +1,11 @@
 package com.myapp.reservations.Controller;
 
-import com.myapp.reservations.DTO.UserDto;
+import com.myapp.reservations.DTO.UserRequest;
+import com.myapp.reservations.DTO.UserResponse;
 import com.myapp.reservations.Services.UserService;
 import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
-import jakarta.persistence.PostUpdate;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,27 +21,30 @@ public class UserController {
     }
 
     @GetMapping()
-    public List<UserDto> findAll(){
+    public List<UserResponse> findAll(){
         return   userService.getUsers();
     }
 
     @GetMapping("/{id}")
-    public UserDto findById(@PathVariable (value = "id") UUID id){
+    public UserResponse findById(@PathVariable (value = "id") UUID id){
         return userService.findById(id);
     }
 
-    @PostMapping()
-    public UserDto save(@RequestBody User user){
+
+
+    @PostMapping("/create")
+    public UserResponse save(@Valid @RequestBody UserRequest user){
         return userService.createUser(user);
     }
 
+
     @GetMapping("/by-name/{name}")
-    public UserDto findByName(@PathVariable (value = "name") String name){
+    public UserResponse findByName(@PathVariable (value = "name") String name){
         return userService.findByName(name);
     }
 
     @GetMapping("/by-role/{role}")
-    public List<UserDto> findByRole(@PathVariable (value = "role") Role role){
+    public List<UserResponse> findByRole(@PathVariable (value = "role") Role role){
         return userService.getUsersByRole(role);
     }
 
@@ -51,7 +55,7 @@ public class UserController {
     }
 
     @PutMapping("/update/{id}")
-    public void update(@PathVariable (value = "id") UUID id, @RequestBody User user){
+    public void update(@PathVariable (value = "id") UUID id,@Valid @RequestBody User user){
         if(user == null || id == null) return ;
         userService.updateUser(id, user);
     }

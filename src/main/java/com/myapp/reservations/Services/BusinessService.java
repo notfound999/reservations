@@ -1,13 +1,16 @@
 package com.myapp.reservations.Services;
 
-import com.myapp.reservations.DTO.BusinessDto;
+import com.myapp.reservations.DTO.BusinessRequest;
+import com.myapp.reservations.DTO.BusinessResponse;
 import com.myapp.reservations.Mappers.BusinessMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.UserRepository;
 import com.myapp.reservations.entities.Business;
 import com.myapp.reservations.entities.User;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,28 +25,28 @@ public class BusinessService {
         this.userRepository = userRepository;
     }
 
-    public BusinessDto getBusinessById(UUID id) {
+    public BusinessResponse getBusinessById(UUID id) {
         if(id == null) {
             return null;
         }
         Optional<Business> business = businessRepository.findById(id);
-        return business.map(BusinessMapper::toDto).orElse(null);
+        return business.map(BusinessMapper::toResponse).orElse(null);
     }
 
-    public List<BusinessDto> getAllBusinesses() {
+    public List<BusinessResponse> getAllBusinesses() {
         List<Business> businesses = businessRepository.findAll();
-         return businesses.stream().map(BusinessMapper::toDto).toList();
+         return businesses.stream().map(BusinessMapper::toResponse).toList();
     }
 
-    public BusinessDto getBusinessByName(String name) {
+    public BusinessResponse getBusinessByName(String name) {
         if(name == null) {
             return null;
         }
         Optional<Business> business = businessRepository.getBusinessByName(name);
-        return business.map(BusinessMapper::toDto).orElse(null);
+        return business.map(BusinessMapper::toResponse).orElse(null);
     }
 
-    public List<BusinessDto> getAllBusinessesByUserId(UUID ownerId) {
+    public List<BusinessResponse> getAllBusinessesByUserId(UUID ownerId) {
         if(ownerId == null) {
             return null;
         }
@@ -52,7 +55,7 @@ public class BusinessService {
             return null;
         }
         List<Business> businesses = businessRepository.getAllBusinessByUserId(user.get().getId());
-        return businesses.stream().map(BusinessMapper::toDto).toList();
+        return businesses.stream().map(BusinessMapper::toResponse).toList();
     }
 
     public void deleteBusinessById(UUID id) {
@@ -62,13 +65,50 @@ public class BusinessService {
         businessRepository.deleteById(id);
     }
 
-    public BusinessDto createBusiness(Business business) {
-        if(business == null) {
-            return null;
+    @Transactional
+    public BusinessResponse createBusiness(BusinessRequest request) {
+        if (request == null) return null;
+
+        User owner = userRepository.findById(request.ownerId())
+                .orElseThrow(() -> new RuntimeException("Owner not found"));
+
+        List<User> admins = new ArrayList<>();
+        if (request.adminIds() != null && !request.adminIds().isEmpty()) {
+            admins = userRepository.findAllById(request.adminIds());
         }
-        businessRepository.save(business);
-        return BusinessMapper.toDto(business);
+
+        Business business = BusinessMapper.toBusiness(request, owner, admins);
+
+        Business savedBusiness = businessRepository.save(business);
+
+        return BusinessMapper.toResponse(savedBusiness);
     }
+
+    @Transactional
+    public BusinessResponse updateBusiness(UUID id, BusinessRequest request) {
+        Business existing = businessRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Business not found"));
+
+        if (request.name() != null) existing.setName(request.name());
+        if (request.description() != null) existing.setDescription(request.description());
+        if (request.address() != null) existing.setAddress(request.address());
+        if (request.phone() != null) existing.setPhone(request.phone());
+
+        if (request.ownerId() != null && !request.ownerId().equals(existing.getOwner().getId())) {
+            User newOwner = userRepository.findById(request.ownerId())
+                    .orElseThrow(() -> new RuntimeException("Owner not found"));
+            existing.setOwner(newOwner);
+        }
+
+        if (request.adminIds() != null) {
+            List<User> admins = userRepository.findAllById(request.adminIds());
+            existing.setAdmins(admins);
+        }
+
+        Business saved = businessRepository.save(existing);
+        return BusinessMapper.toResponse(saved);
+    }
+
 
 
 }
