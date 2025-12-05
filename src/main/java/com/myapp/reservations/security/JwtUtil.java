@@ -1,8 +1,6 @@
 package com.myapp.reservations.security;
 
-import com.myapp.reservations.entities.User;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,9 +17,9 @@ public class JwtUtil {
     private final String jwtSecret ="1f360178aaa419e59d0feff13cc0f42ba4897ed477bc32c33c2fbb00e37db954";
     Key key =Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-    public String  generateToken(User user){
+    public String  generateToken(String user){
         return Jwts.builder()
-                .subject(user.getId().toString())
+                .subject(user)
                 .issuedAt(new Date())
                 .expiration(new Date(new Date().getTime()+360000))
                 .signWith(key)
