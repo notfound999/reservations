@@ -7,6 +7,8 @@ import com.myapp.reservations.Repository.UserRepository;
 import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,8 +22,11 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserResponse> getUsers() {
@@ -37,9 +42,8 @@ public class UserService {
             return null;
         }
         User user = userRepository.findByName(name);
-        UserMapper mappers = new UserMapper();
 
-        return mappers.toResponse(user);
+        return UserMapper.toResponse(user);
     }
 
 
@@ -72,8 +76,8 @@ public class UserService {
     @Transactional
     public UserResponse createUser(UserRequest request) {
         if (request == null) return null;
-
         User user = UserMapper.toUser(request);
+        user.setPassword(passwordEncoder.encode(request.password()));
         User savedUser = userRepository.save(user);
         return UserMapper.toResponse(savedUser);
     }

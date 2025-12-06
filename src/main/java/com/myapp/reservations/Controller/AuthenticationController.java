@@ -1,6 +1,9 @@
 package com.myapp.reservations.Controller;
 
+import com.myapp.reservations.DTO.UserRequest;
+import com.myapp.reservations.DTO.UserResponse;
 import com.myapp.reservations.Repository.UserRepository;
+import com.myapp.reservations.Services.UserService;
 import com.myapp.reservations.security.JwtUtil;
 import com.myapp.reservations.entities.User;
 
@@ -23,27 +26,30 @@ public class AuthenticationController {
     private UserRepository userRepository;
     private PasswordEncoder encoder;
     private JwtUtil jwtUtils;
+    private UserService userService;
 
     @Autowired
     public AuthenticationController(
             AuthenticationManager authenticationManager,
             UserRepository userRepository,
             PasswordEncoder encoder,
-            JwtUtil jwtUtils
+            JwtUtil jwtUtils,
+            UserService userService
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.encoder = encoder;
         this.jwtUtils = jwtUtils;
+        this.userService = userService;
     }
 
 
     @PostMapping("/signin")
-    public String authenticateUser(@RequestBody User user) {
+    public String authenticateUser(@RequestBody UserRequest user) {
         Authentication authentication = authenticationManager.authenticate(
                 new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                        user.getName(),
-                        user.getPassword()
+                        user.name(),
+                        user.password()
                 )
         );
 
@@ -52,22 +58,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public String registerUser(@RequestBody User user) {
-        if (userRepository.existsByName(user.getName())) {
-            return "User already exists!";
+    public UserResponse registerUser(@RequestBody UserRequest user) {
+        if (userRepository.existsByName(user.name())) {
+            return null;
         }
-
-        final User newUser = new User(
-                null,
-                user.getName(),
-                user.getEmail(),
-                encoder.encode(user.getPassword()),
-                user.getRole(),
-                user.getPhone(),
-                null,
-                null
-        );
-        userRepository.save(newUser);
-        return "User registered successfully!";
+         return userService.createUser(user);
     }
 }

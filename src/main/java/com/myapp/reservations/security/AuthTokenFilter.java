@@ -33,6 +33,14 @@ class AuthTokenFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
+        // ✅ Skip public endpoints
+        String path = request.getServletPath();
+        if (path.startsWith("/api/auth/") || path.equals("/api/welcome")) {
+            filterChain.doFilter(request, response);
+            return; // exit the filter for these endpoints
+        }
+
         try {
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtil.validateToken(jwt)) {
@@ -46,13 +54,13 @@ class AuthTokenFilter extends OncePerRequestFilter {
                                 userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource()
                         .buildDetails(request));
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authenticationToken);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e);
+            log.error("Cannot set user authentication: {}", e.getMessage());
         }
-        filterChain.doFilter(request, response); // needed for the next filter in the chain
+
+        filterChain.doFilter(request, response); // continue to next filter
     }
 
     private String parseJwt(HttpServletRequest request) {
