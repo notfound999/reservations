@@ -36,8 +36,10 @@ public class UserService {
         if(name==null){
             return null;
         }
-        Optional<User> user = userRepository.findByName(name);
-        return user.map(UserMapper::toResponse).orElse(null);
+        User user = userRepository.findByName(name);
+        UserMapper mappers = new UserMapper();
+
+        return mappers.toResponse(user);
     }
 
 

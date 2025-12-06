@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
-        User user = userRepository.findByName1(name);
+        User user = userRepository.findByName(name);
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }

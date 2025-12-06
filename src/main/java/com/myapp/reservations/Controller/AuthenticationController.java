@@ -53,7 +53,7 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     public String registerUser(@RequestBody User user) {
-        if (userRepository.existsByUsername(user.getName())) {
+        if (userRepository.existsByName(user.getName())) {
             return "User already exists!";
         }
 
