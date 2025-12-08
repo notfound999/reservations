@@ -34,12 +34,7 @@ class AuthTokenFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // ✅ Skip public endpoints
-        String path = request.getServletPath();
-        if (path.startsWith("/api/auth/") || path.equals("/api/welcome")) {
-            filterChain.doFilter(request, response);
-            return; // exit the filter for these endpoints
-        }
+
 
         try {
             String jwt = parseJwt(request);

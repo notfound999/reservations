@@ -30,13 +30,10 @@ public class UserController {
         return userService.findById(id);
     }
 
-
-
     @PostMapping("/create")
     public UserResponse save(@Valid @RequestBody UserRequest user){
         return userService.createUser(user);
     }
-
 
     @GetMapping("/by-name/{name}")
     public UserResponse findByName(@PathVariable (value = "name") String name){

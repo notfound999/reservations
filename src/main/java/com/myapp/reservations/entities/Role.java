@@ -1,7 +1,8 @@
 package com.myapp.reservations.entities;
 
 public enum Role {
-    CUSTOMER,
-    OWNER,
+    USER,
+    BUSINESS_OWNER,
+    BUSINESS_ADMIN,
     ADMIN
 }
