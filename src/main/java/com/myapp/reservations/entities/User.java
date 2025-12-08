@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -30,12 +30,25 @@ public class User {
     @Column(name = "user_password", nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "user_role")
-    private Role role;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set<String> roles = new HashSet<>();
+
 
     @Column(name = "user_phone")
     private String phone;
+
+    @OneToMany(mappedBy = "owner")
+    private List<Business> ownedBusinesses = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "b_admins",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "b_id")
+    )
+    private List<Business> adminOfBusinesses = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

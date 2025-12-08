@@ -6,6 +6,7 @@ import com.myapp.reservations.Services.UserService;
 import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/users")
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserService userService;
@@ -52,8 +54,8 @@ public class UserController {
     }
 
     @PutMapping("/update/{id}")
-    public void update(@PathVariable (value = "id") UUID id,@Valid @RequestBody User user){
-        if(user == null || id == null) return ;
-        userService.updateUser(id, user);
+    public void update(@PathVariable (value = "id") UUID id,@Valid @RequestBody UserRequest userRequest){
+        if(userRequest == null || id == null) return ;
+        userService.updateUser(id, userRequest);
     }
 }

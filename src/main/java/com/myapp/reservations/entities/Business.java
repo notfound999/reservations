@@ -41,12 +41,7 @@ public class Business {
     @JoinColumn(name = "b_owner_id", nullable = false)
     private User owner;
 
-    @ManyToMany
-    @JoinTable(
-            name = "b_admins",
-            joinColumns = @JoinColumn(name = "b_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
+    @ManyToMany(mappedBy = "adminOfBusinesses")
     private List<User> admins = new ArrayList<>();
 
     private LocalDateTime createdAt;

@@ -94,21 +94,33 @@ public class UserService {
         if(id == null) {
             return;
         }
-        userRepository.deleteById(id);
+        if(userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        }
+
     }
 
-    public void updateUser(UUID id, User user) {
-        if(user == null || id == null) return;
 
-        User userToUpdate = userRepository.findById(id)
+
+    @Transactional
+    public UserResponse updateUser(UUID id, UserRequest request) {
+
+        User existing = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        userToUpdate.setName(user.getName());
-        userToUpdate.setEmail(user.getEmail());
-        userToUpdate.setPassword(user.getPassword());
+        if (request.name() != null) existing.setName(request.name());
+        if (request.email() != null) existing.setEmail(request.email());
+        if (request.phone() != null) existing.setPhone(request.phone());
 
-        userRepository.save(userToUpdate);
+        if (request.password() != null) {
+            String encoded = passwordEncoder.encode(request.password());
+            existing.setPassword(encoded);
+        }
+
+        User saved = userRepository.save(existing);
+        return UserMapper.toResponse(saved);
     }
+
 
     public UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
