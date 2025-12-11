@@ -9,6 +9,8 @@ import com.myapp.reservations.entities.User;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 public class BusinessMapper {
 
     public static BusinessResponse toResponse(Business business) {
@@ -25,10 +27,11 @@ public class BusinessMapper {
                 business.getDescription(),
                 business.getAddress(),
                 business.getPhone(),
-                UserMapper.toResponse(business.getOwner()),
-                adminResponses,
-                business.getCreatedAt(),
-                business.getUpdatedAt()
+                business.getOwner().getId(),
+                business.getAdmins().stream()
+                        .map(User::getId)
+                        .toList()
+
         );
     }
 
@@ -43,6 +46,10 @@ public class BusinessMapper {
         business.setOwner(owner);
         business.setAdmins(admins != null ? new ArrayList<>(admins) : new ArrayList<>());
         return business;
+    }
+
+    public static Business toBusiness(BusinessRequest request, User owner) {
+        return toBusiness(request, owner, new ArrayList<>());
     }
 
 }

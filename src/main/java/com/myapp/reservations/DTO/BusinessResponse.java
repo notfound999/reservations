@@ -10,8 +10,7 @@ public record BusinessResponse(
         String description,
         String address,
         String phone,
-        UserResponse owner,
-        List<UserResponse> admins,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        UUID ownerId,
+        List<UUID> adminIds
 ) {}
+

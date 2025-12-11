@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -75,16 +76,17 @@ public class UserService {
         if (request == null) return null;
         User user = UserMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(Role.USER);
+        user.setRoles(Set.of("USER"));
+
         User savedUser = userRepository.save(user);
         return UserMapper.toResponse(savedUser);
     }
 
-    public List<UserResponse> getUsersByRole(Role role) {
+    public List<UserResponse> getUsersByRoles(Role role) {
         if(role==null){
             return null;
         }
-        return userRepository.findByRole(role)
+        return userRepository.findByRoles(role)
                 .stream()
                 .map(UserMapper::toResponse)
                 .toList();
@@ -94,13 +96,9 @@ public class UserService {
         if(id == null) {
             return;
         }
-        if(userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-        }
+        userRepository.findById(id).ifPresent(userRepository::delete);
 
     }
-
-
 
     @Transactional
     public UserResponse updateUser(UUID id, UserRequest request) {
@@ -113,19 +111,31 @@ public class UserService {
         if (request.phone() != null) existing.setPhone(request.phone());
 
         if (request.password() != null) {
-            String encoded = passwordEncoder.encode(request.password());
-            existing.setPassword(encoded);
+            existing.setPassword(passwordEncoder.encode(request.password()));
         }
 
         User saved = userRepository.save(existing);
         return UserMapper.toResponse(saved);
     }
 
+    public  void addBusinessOwnerRole(UUID userId){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRoles(Set.of("BUSINESS_OWNER"));
+        userRepository.save(user);
+
+    }
+
 
     public UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString(auth.getName()); // name = subject from JWT
+        User user = userRepository.findByName(auth.getName());
+        return user.getId(); // UUID from database
     }
+
+
+
 
 
 

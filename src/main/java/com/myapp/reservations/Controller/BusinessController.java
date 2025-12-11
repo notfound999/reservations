@@ -3,6 +3,7 @@ package com.myapp.reservations.Controller;
 import com.myapp.reservations.DTO.BusinessRequest;
 import com.myapp.reservations.DTO.BusinessResponse;
 import com.myapp.reservations.Services.BusinessService;
+import com.myapp.reservations.Services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +14,11 @@ import java.util.UUID;
 @RequestMapping("/api/businesses")
 public class BusinessController {
     private final BusinessService businessService;
+    private final UserService userService;
 
-    public BusinessController(BusinessService businessService) {
+    public BusinessController(BusinessService businessService , UserService userService) {
         this.businessService = businessService;
+        this.userService = userService;
     }
 
     @GetMapping("")
@@ -39,14 +42,15 @@ public class BusinessController {
     }
 
     @PostMapping("/create")
-    public BusinessResponse createBusiness( @Valid @RequestBody BusinessRequest business) {
-        return businessService.createBusiness(business);
+    public BusinessResponse createBusiness(@Valid @RequestBody BusinessRequest business) {
+        UUID currentUserId = userService.getCurrentUserId(); // get authenticated user
+        return businessService.createBusiness(business, currentUserId);
     }
 
     @PutMapping("/update/{id}")
-    public void update(@PathVariable(value = "id") UUID id, @RequestBody BusinessRequest business) {
-        if (business == null || id == null) return;
-        businessService.updateBusiness(id, business);
+    public BusinessResponse update(@PathVariable(value = "id") UUID id, @RequestBody BusinessRequest business) {
+        if (business == null || id == null) return null ;
+        return businessService.updateBusiness(id, business);
     }
 
     @DeleteMapping("/{id}")

@@ -11,7 +11,7 @@ public class UserMapper {
         if(user==null){
             return null;
         }
-        return new UserResponse(user.getId(),user.getName(),user.getEmail(),user.getPhone(),user.getRole(),user.getCreatedAt(),user.getCreatedAt() );
+        return new UserResponse(user.getId(),user.getName(),user.getEmail(),user.getPhone(),user.getRoles());
     }
 
     public static User toUser(UserRequest request) {
@@ -20,9 +20,6 @@ public class UserMapper {
         user.setName(request.name());
         user.setEmail(request.email());
         user.setPassword(request.password());
-        if (request.role() != null) {
-            user.setRole(Enum.valueOf(Role.class, request.role()));
-        }
         user.setPhone(request.phone());
         return user;
     }

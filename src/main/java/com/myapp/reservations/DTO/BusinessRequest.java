@@ -1,11 +1,9 @@
 package com.myapp.reservations.DTO;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.util.List;
-import java.util.UUID;
+
 
 public record BusinessRequest(
         @NotBlank(message = "Business name is required")
@@ -18,10 +16,5 @@ public record BusinessRequest(
         String address,
 
         @NotBlank(message = "Phone is required")
-        String phone,
-
-        @NotNull(message = "OwnerId is required")
-        UUID ownerId,
-
-        List<UUID> adminIds
+        String phone
 ) {}

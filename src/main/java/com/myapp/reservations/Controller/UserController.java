@@ -43,8 +43,8 @@ public class UserController {
     }
 
     @GetMapping("/by-role/{role}")
-    public List<UserResponse> findByRole(@PathVariable (value = "role") Role role){
-        return userService.getUsersByRole(role);
+    public List<UserResponse> findByRoles(@PathVariable (value = "role") Role role){
+        return userService.getUsersByRoles(role);
     }
 
     @DeleteMapping("/{id}")

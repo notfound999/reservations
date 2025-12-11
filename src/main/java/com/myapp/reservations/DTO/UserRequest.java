@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record UserRequest(
 
+        @NotBlank(message = "Name is required")
         String name,
 
         @Email(message = "Invalid email format")
@@ -17,7 +18,5 @@ public record UserRequest(
         @Size(min = 8, message = "Password must be at least 8 characters")
         String password,
 
-        @NotBlank(message = "Role is required")
-        String role,
         String phone
 ) {}

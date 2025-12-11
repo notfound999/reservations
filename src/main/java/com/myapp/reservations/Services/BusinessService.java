@@ -10,7 +10,6 @@ import com.myapp.reservations.entities.User;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,10 +18,12 @@ import java.util.UUID;
 public class BusinessService {
     private final BusinessRepository businessRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public BusinessService(BusinessRepository businessRepository, UserRepository userRepository) {
+    public BusinessService(BusinessRepository businessRepository, UserRepository userRepository, UserService userService) {
         this.businessRepository = businessRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     public BusinessResponse getBusinessById(UUID id) {
@@ -66,21 +67,20 @@ public class BusinessService {
     }
 
     @Transactional
-    public BusinessResponse createBusiness(BusinessRequest request) {
+    public BusinessResponse createBusiness(BusinessRequest request, UUID currentUserId) {
         if (request == null) return null;
 
-        User owner = userRepository.findById(request.ownerId())
+        // Set owner from current authenticated user
+        User owner = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
 
-        List<User> admins = new ArrayList<>();
-        if (request.adminIds() != null && !request.adminIds().isEmpty()) {
-            admins = userRepository.findAllById(request.adminIds());
-        }
-
-        Business business = BusinessMapper.toBusiness(request, owner, admins);
+        Business business = BusinessMapper.toBusiness(request, owner); // no admins here
 
         Business savedBusiness = businessRepository.save(business);
-
+        if(!owner.getRoles().contains("BUSINESS_OWNER")) {
+            owner.getRoles().add("BUSINESS_OWNER");
+            userRepository.save(owner);
+        }
         return BusinessMapper.toResponse(savedBusiness);
     }
 
@@ -94,20 +94,24 @@ public class BusinessService {
         if (request.address() != null) existing.setAddress(request.address());
         if (request.phone() != null) existing.setPhone(request.phone());
 
-        if (request.ownerId() != null && !request.ownerId().equals(existing.getOwner().getId())) {
-            User newOwner = userRepository.findById(request.ownerId())
-                    .orElseThrow(() -> new RuntimeException("Owner not found"));
-            existing.setOwner(newOwner);
-        }
-
-        if (request.adminIds() != null) {
-            List<User> admins = userRepository.findAllById(request.adminIds());
-            existing.setAdmins(admins);
-        }
-
         Business saved = businessRepository.save(existing);
         return BusinessMapper.toResponse(saved);
     }
+
+
+    @Transactional
+    public void addAdminToBusiness(UUID businessId, UUID userId) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new RuntimeException("Business not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        business.getAdmins().add(user);
+        user.getAdminOfBusinesses().add(business);
+
+        businessRepository.save(business);
+    }
+
 
 
 
