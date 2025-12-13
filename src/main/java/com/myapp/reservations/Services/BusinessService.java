@@ -2,7 +2,9 @@ package com.myapp.reservations.Services;
 
 import com.myapp.reservations.DTO.BusinessRequest;
 import com.myapp.reservations.DTO.BusinessResponse;
+import com.myapp.reservations.DTO.UserResponse;
 import com.myapp.reservations.Mappers.BusinessMapper;
+import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.UserRepository;
 import com.myapp.reservations.entities.Business;
@@ -10,6 +12,7 @@ import com.myapp.reservations.entities.User;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -112,7 +115,8 @@ public class BusinessService {
         businessRepository.save(business);
     }
 
-
-
-
+    public List<UserResponse> getAllAdmins(UUID businessId){
+        Business business = businessRepository.getBusinessById(businessId).orElseThrow(() -> new RuntimeException("business not found"));
+        return business.getAdmins().stream().map(UserMapper::toResponse).toList();
+    }
 }

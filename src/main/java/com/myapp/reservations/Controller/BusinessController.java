@@ -2,6 +2,7 @@ package com.myapp.reservations.Controller;
 
 import com.myapp.reservations.DTO.BusinessRequest;
 import com.myapp.reservations.DTO.BusinessResponse;
+import com.myapp.reservations.DTO.UserResponse;
 import com.myapp.reservations.Services.BusinessService;
 import com.myapp.reservations.Services.UserService;
 import jakarta.validation.Valid;
@@ -27,7 +28,7 @@ public class BusinessController {
     }
 
     @GetMapping("/by-business-id/{id}")
-    public BusinessResponse getBusinessById(@PathVariable(value = "id") UUID id) {
+    public BusinessResponse getBusinessById(@PathVariable UUID id) {
         return businessService.getBusinessById(id);
     }
 
@@ -48,13 +49,24 @@ public class BusinessController {
     }
 
     @PutMapping("/update/{id}")
-    public BusinessResponse update(@PathVariable(value = "id") UUID id, @RequestBody BusinessRequest business) {
+    public BusinessResponse update(@PathVariable UUID id, @RequestBody BusinessRequest business) {
         if (business == null || id == null) return null ;
         return businessService.updateBusiness(id, business);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBusinessById(@PathVariable(value = "id") UUID id) {
+    public void deleteBusinessById(@PathVariable UUID id) {
         businessService.deleteBusinessById(id);
+    }
+
+    @GetMapping("{id}/admins")
+    public List<UserResponse> getAllAdmins(@PathVariable(value = "id") UUID businessId){
+        if (businessId == null ) return null ;
+        return businessService.getAllAdmins(businessId);
+    }
+
+    @PutMapping("{businessId}/admins/")
+    public void addAdminToBusiness(@PathVariable UUID businessId, @RequestBody UUID userId){
+        businessService.addAdminToBusiness(businessId,userId);
     }
 }
