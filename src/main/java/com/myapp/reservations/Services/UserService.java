@@ -118,16 +118,6 @@ public class UserService {
         return UserMapper.toResponse(saved);
     }
 
-    public  void addBusinessOwnerRole(UUID userId){
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setRoles(Set.of("BUSINESS_OWNER"));
-        userRepository.save(user);
-
-    }
-
-
     public UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByName(auth.getName());

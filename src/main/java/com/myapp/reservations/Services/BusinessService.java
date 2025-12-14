@@ -12,7 +12,6 @@ import com.myapp.reservations.entities.User;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,12 +20,10 @@ import java.util.UUID;
 public class BusinessService {
     private final BusinessRepository businessRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
 
-    public BusinessService(BusinessRepository businessRepository, UserRepository userRepository, UserService userService) {
+    public BusinessService(BusinessRepository businessRepository, UserRepository userRepository) {
         this.businessRepository = businessRepository;
         this.userRepository = userRepository;
-        this.userService = userService;
     }
 
     public BusinessResponse getBusinessById(UUID id) {
@@ -111,8 +108,11 @@ public class BusinessService {
 
         business.getAdmins().add(user);
         user.getAdminOfBusinesses().add(business);
-
-        businessRepository.save(business);
+        if(user.getRoles().contains("BUSINESS_ADMIN")) {
+            user.getRoles().add("BUSINESS_ADMIN");
+        }
+        userRepository.save(user);
+       businessRepository.save(business);
     }
 
     public List<UserResponse> getAllAdmins(UUID businessId){
