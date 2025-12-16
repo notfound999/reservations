@@ -18,7 +18,7 @@ import java.util.UUID;
 public class Reservation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private UUID businessId;

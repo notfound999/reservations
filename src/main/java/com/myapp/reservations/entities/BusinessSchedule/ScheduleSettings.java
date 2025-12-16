@@ -17,14 +17,11 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ScheduleSettings {
 
-
         @Id
         @GeneratedValue(strategy = GenerationType.UUID)
         private UUID id;
 
-
         private Integer minAdvanceBookingHours;
-
 
         private Integer maxAdvanceBookingDays;
 
@@ -45,6 +42,4 @@ public class ScheduleSettings {
         // Link back to business (optional, depending on your query needs)
         @OneToOne(mappedBy = "scheduleSettings")
         private Business business;
-
-
 }

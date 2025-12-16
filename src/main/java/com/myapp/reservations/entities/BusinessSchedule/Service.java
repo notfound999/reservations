@@ -12,7 +12,8 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "services")
+@Table(name = "business_services")
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +22,6 @@ public class Service {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "service_id")
     private UUID id;
 
     @Column(nullable = false)
@@ -43,7 +43,7 @@ public class Service {
      */
     private Integer bufferTimeMinutes;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "b_id", nullable = false)
     @JsonIgnore // CRITICAL: Prevents infinite loop when loading Business -> Service -> Business
     private Business business;

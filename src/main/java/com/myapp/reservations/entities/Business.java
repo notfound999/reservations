@@ -50,12 +50,14 @@ public class Business {
     private LocalDateTime updatedAt;
 
     // One Business has One Schedule
+    // FIX START: Explicitly mapping to ScheduleSettings
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "schedule_settings_id", referencedColumnName = "id")
+    @JoinColumn(
+            name = "schedule_settings_id", // Name of the column in the 'businesses' table
+            referencedColumnName = "id"    // Name of the ID field inside 'ScheduleSettings' class
+    )
     private ScheduleSettings scheduleSettings;
 
-    // One Business has Many Services
-    // Added 'mappedBy' so JPA knows 'Service' owns the foreign key
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Service> services = new ArrayList<>();
     @PrePersist

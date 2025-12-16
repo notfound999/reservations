@@ -32,7 +32,7 @@ public class User {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "roles")
+    @Column(name = "user_roles")
     private Set<String> roles = new HashSet<>();
 
 
