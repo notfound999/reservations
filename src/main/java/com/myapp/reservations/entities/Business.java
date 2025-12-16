@@ -1,6 +1,8 @@
 package com.myapp.reservations.entities;
 
 
+import com.myapp.reservations.entities.BusinessSchedule.ScheduleSettings;
+import com.myapp.reservations.entities.BusinessSchedule.Service;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,6 +49,15 @@ public class Business {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // One Business has One Schedule
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "schedule_settings_id", referencedColumnName = "id")
+    private ScheduleSettings scheduleSettings;
+
+    // One Business has Many Services
+    // Added 'mappedBy' so JPA knows 'Service' owns the foreign key
+    @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Service> services = new ArrayList<>();
     @PrePersist
     public void onCreate(){
         this.createdAt = LocalDateTime.now();
