@@ -1,5 +1,7 @@
 package com.myapp.reservations.entities.BusinessSchedule;
 
+import com.myapp.reservations.entities.Business;
+import com.myapp.reservations.entities.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,9 +23,18 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID businessId;
-    private UUID serviceId;
-    private UUID userId;
+    // Use the actual Entities so Hibernate can link the tables
+    @ManyToOne
+    @JoinColumn(name = "business_id", nullable = false)
+    private Business business;
+
+    @ManyToOne
+    @JoinColumn(name = "service_id", nullable = false)
+    private Offering offering;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     private LocalDate date;
     private LocalTime startTime;

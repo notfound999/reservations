@@ -1,4 +1,4 @@
-package com.myapp.reservations.DTO;
+package com.myapp.reservations.DTO.UserDTOs;
 
 
 import jakarta.validation.constraints.Email;

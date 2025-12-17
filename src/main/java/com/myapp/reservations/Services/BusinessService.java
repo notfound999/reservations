@@ -1,8 +1,8 @@
 package com.myapp.reservations.Services;
 
-import com.myapp.reservations.DTO.BusinessRequest;
-import com.myapp.reservations.DTO.BusinessResponse;
-import com.myapp.reservations.DTO.UserResponse;
+import com.myapp.reservations.DTO.BusinessDTOs.BusinessRequest;
+import com.myapp.reservations.DTO.BusinessDTOs.BusinessResponse;
+import com.myapp.reservations.DTO.UserDTOs.UserResponse;
 import com.myapp.reservations.Mappers.BusinessMapper;
 import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.BusinessRepository;

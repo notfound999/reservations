@@ -1,8 +1,7 @@
 package com.myapp.reservations.Mappers;
 
-import com.myapp.reservations.DTO.UserRequest;
-import com.myapp.reservations.DTO.UserResponse;
-import com.myapp.reservations.entities.Role;
+import com.myapp.reservations.DTO.UserDTOs.UserRequest;
+import com.myapp.reservations.DTO.UserDTOs.UserResponse;
 import com.myapp.reservations.entities.User;
 
 public class UserMapper {

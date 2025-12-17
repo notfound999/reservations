@@ -1,4 +1,4 @@
-package com.myapp.reservations.DTO;
+package com.myapp.reservations.DTO.BusinessDTOs;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,4 +17,6 @@ public record BusinessRequest(
 
         @NotBlank(message = "Phone is required")
         String phone
+
+
 ) {}

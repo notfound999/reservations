@@ -1,8 +1,8 @@
 package com.myapp.reservations.entities;
 
 
+import com.myapp.reservations.entities.BusinessSchedule.Offering;
 import com.myapp.reservations.entities.BusinessSchedule.ScheduleSettings;
-import com.myapp.reservations.entities.BusinessSchedule.Service;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -59,7 +59,7 @@ public class Business {
     private ScheduleSettings scheduleSettings;
 
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Service> services = new ArrayList<>();
+    private List<Offering> offerings = new ArrayList<>();
     @PrePersist
     public void onCreate(){
         this.createdAt = LocalDateTime.now();
@@ -69,5 +69,10 @@ public class Business {
     @PreUpdate
     public void onUpdate(){
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void addOffering(Offering offering) {
+        this.offerings.add(offering);
+        offering.setBusiness(this); // Set the back-reference here!
     }
 }

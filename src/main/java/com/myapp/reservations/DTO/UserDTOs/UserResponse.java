@@ -1,8 +1,5 @@
-package com.myapp.reservations.DTO;
+package com.myapp.reservations.DTO.UserDTOs;
 
-import com.myapp.reservations.entities.Role;
-
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
