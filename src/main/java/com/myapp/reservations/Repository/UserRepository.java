@@ -2,9 +2,7 @@ package com.myapp.reservations.Repository;
 
 import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 import java.util.UUID;

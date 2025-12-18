@@ -1,4 +1,4 @@
-package com.myapp.reservations.DTO.ServiceDTOs;
+package com.myapp.reservations.DTO.OfferingDTOs;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

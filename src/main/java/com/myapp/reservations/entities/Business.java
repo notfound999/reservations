@@ -49,8 +49,6 @@ public class Business {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // One Business has One Schedule
-    // FIX START: Explicitly mapping to ScheduleSettings
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(
             name = "schedule_settings_id", // Name of the column in the 'businesses' table
@@ -60,6 +58,7 @@ public class Business {
 
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Offering> offerings = new ArrayList<>();
+
     @PrePersist
     public void onCreate(){
         this.createdAt = LocalDateTime.now();

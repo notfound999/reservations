@@ -12,7 +12,7 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "business_services")
+@Table(name = "offerings")
 
 @Getter
 @Setter
@@ -32,18 +32,14 @@ public class Offering {
     @Column(nullable = false)
     private Double price;
 
-    /** * Duration in minutes (e.g., 30, 60).
-     * This is what your booking logic will use to block the calendar.
-     */
+
     @Column(nullable = false)
     private Integer durationMinutes;
 
-    /**
-     * Optional: Buffer time after the service (e.g., 10 mins to clean)
-     */
+
     private Integer bufferTimeMinutes;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "b_id", nullable = false)
     @JsonIgnore // CRITICAL: Prevents infinite loop when loading Business -> Service -> Business
     private Business business;

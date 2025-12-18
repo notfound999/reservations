@@ -1,4 +1,4 @@
-package com.myapp.reservations.DTO.ServiceDTOs;
+package com.myapp.reservations.DTO.OfferingDTOs;
 
 import java.util.UUID;
 

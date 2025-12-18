@@ -1,7 +1,7 @@
 package com.myapp.reservations.Mappers;
 
-import com.myapp.reservations.DTO.ServiceDTOs.OfferingRequest;
-import com.myapp.reservations.DTO.ServiceDTOs.OfferingResponse;
+import com.myapp.reservations.DTO.OfferingDTOs.OfferingRequest;
+import com.myapp.reservations.DTO.OfferingDTOs.OfferingResponse;
 import com.myapp.reservations.entities.BusinessSchedule.Offering;
 
 public class OfferingMapper {

@@ -20,10 +20,11 @@ import java.util.UUID;
 public class BusinessService {
     private final BusinessRepository businessRepository;
     private final UserRepository userRepository;
-
-    public BusinessService(BusinessRepository businessRepository, UserRepository userRepository) {
+    private final ScheduleService scheduleService;
+    public BusinessService(BusinessRepository businessRepository, UserRepository userRepository, ScheduleService scheduleService) {
         this.businessRepository = businessRepository;
         this.userRepository = userRepository;
+        this.scheduleService=scheduleService;
     }
 
     public BusinessResponse getBusinessById(UUID id) {
@@ -75,7 +76,7 @@ public class BusinessService {
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
 
         Business business = BusinessMapper.toBusiness(request, owner); // no admins here
-
+        scheduleService.createDefaultSchedule(business);
         Business savedBusiness = businessRepository.save(business);
         if(!owner.getRoles().contains("BUSINESS_OWNER")) {
             owner.getRoles().add("BUSINESS_OWNER");

@@ -1,7 +1,7 @@
 package com.myapp.reservations.Services;
 
-import com.myapp.reservations.DTO.ServiceDTOs.OfferingRequest;
-import com.myapp.reservations.DTO.ServiceDTOs.OfferingResponse;
+import com.myapp.reservations.DTO.OfferingDTOs.OfferingRequest;
+import com.myapp.reservations.DTO.OfferingDTOs.OfferingResponse;
 import com.myapp.reservations.Mappers.OfferingMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.OfferingRepository;
@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -36,4 +37,39 @@ public class OfferingService {
 
         return OfferingMapper.toResponse(offeringRepository.save(offering));
     }
+
+    public OfferingResponse getOfferingById(UUID offeringId){
+
+        return OfferingMapper.toResponse(offeringRepository.getOfferingById(offeringId));
+    }
+
+    public List<OfferingResponse> getBusinessOfferings(UUID businessId){
+        if(businessId == null){
+            return null;
+        }
+        Business business = businessRepository.getBusinessById(businessId).orElseThrow(()-> new RuntimeException("Business not found"));
+        return business.getOfferings().stream().map(OfferingMapper::toResponse).toList();
+    }
+
+    public void deleteOfferingId(UUID offeringId){
+        offeringRepository.deleteById(offeringId);
+    }
+
+    @Transactional
+    public OfferingResponse updateOffering(UUID offeringId, OfferingRequest request) {
+        Offering existing = offeringRepository.findById(offeringId)
+                .orElseThrow(() -> new RuntimeException("Offering not found"));
+
+        if (request.name() != null) existing.setName(request.name());
+        if (request.description() != null) existing.setDescription(request.description());
+        if (request.price() != null) existing.setPrice(request.price());
+        if (request.durationMinutes() != null) existing.setDurationMinutes(request.durationMinutes());
+        if (request.bufferTimeMinutes() != null) existing.setBufferTimeMinutes(request.bufferTimeMinutes());
+
+        Offering saved = offeringRepository.save(existing);
+        return OfferingMapper.toResponse(saved);
+    }
+
+
+
 }
