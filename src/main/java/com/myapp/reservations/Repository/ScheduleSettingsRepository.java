@@ -12,5 +12,4 @@ public interface ScheduleSettingsRepository extends JpaRepository<ScheduleSettin
     ScheduleSettings getScheduleSettingsById(UUID scheduleId);
     Optional<ScheduleSettings> getScheduleSettingsByBusinessId(UUID businessId);
     List<ScheduleSettings> findAll();
-
  }

@@ -9,7 +9,6 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.UUID;
-
 @Entity
 @Getter
 @Setter
@@ -21,25 +20,25 @@ public class ScheduleSettings {
         @GeneratedValue(strategy = GenerationType.UUID)
         private UUID id;
 
+        // Reservation mode: SLOT (Barber) or RANGE (Office)
+        @Enumerated(EnumType.STRING)
+        private ReservationType reservationType;
+
+        // Combined Duration:
+        // If SLOT: value is 30, unit is MINUTES.
+        // If RANGE: value is 1, unit is DAYS.
+        private Integer slotDurationValue;
+
+        @Enumerated(EnumType.STRING)
+        private java.time.temporal.ChronoUnit slotDurationUnit;
+
         private Integer minAdvanceBookingHours;
-
         private Integer maxAdvanceBookingDays;
-
-        // "Default Appointment Duration"
-        // Useful if a service doesn't specify its own length
-        private Integer defaultSlotDurationMinutes;
-
-        // "Auto-Confirm?"
-        // true = instant booking. false = business owner must approve.
         private Boolean autoConfirmAppointments;
 
-        // --- The Weekly Structure ---
-
-        // One Schedule has 7 days of working hours (Mon-Sun)
         @OneToMany(mappedBy = "scheduleSettings", cascade = CascadeType.ALL)
         private List<WorkingDay> workingDays;
 
-        // Link back to business (optional, depending on your query needs)
         @OneToOne(mappedBy = "scheduleSettings")
         private Business business;
 }

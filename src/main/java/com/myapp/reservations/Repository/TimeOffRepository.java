@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface TimeOffRepository extends JpaRepository<TimeOff, UUID> {
     List<TimeOff> findByScheduleSettingsBusinessId(UUID businessId);
-
+    List<TimeOff> findByBusinessIdAndRange(UUID businessId,LocalDateTime startDateTime , LocalDateTime endDateTime);
     // Useful later: find if any time-off exists for a specific date
     @Query("SELECT t FROM TimeOff t WHERE t.scheduleSettings.business.id = :businessId " +
             "AND :requestedDate BETWEEN t.startDateTime AND t.endDateTime")

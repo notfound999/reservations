@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -23,23 +24,24 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Use the actual Entities so Hibernate can link the tables
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)
     private Business business;
 
     @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false)
+    @JoinColumn(name = "service_id", nullable = false) // Offering (Office, Massage, etc)
     private Offering offering;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private LocalDate date;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    // Use LocalDateTime to support multi-day ranges
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
+
+    private LocalDateTime createdAt;
 }

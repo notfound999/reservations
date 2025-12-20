@@ -20,12 +20,13 @@ public class ScheduleMapper {
         if (request == null) return null;
 
         ScheduleSettings settings = new ScheduleSettings();
+        settings.setReservationType(request.reservationType());
+        settings.setSlotDurationValue(request.slotDurationValue());
+        settings.setSlotDurationUnit(request.slotDurationUnit());
         settings.setMinAdvanceBookingHours(request.minAdvanceBookingHours());
         settings.setMaxAdvanceBookingDays(request.maxAdvanceBookingDays());
-        settings.setDefaultSlotDurationMinutes(request.defaultSlotDurationMinutes());
         settings.setAutoConfirmAppointments(request.autoConfirmAppointments());
 
-        // Map the list of WorkingDayRequests into WorkingDay Entities
         if (request.workingDays() != null) {
             List<WorkingDay> days = request.workingDays().stream()
                     .map(dayRequest -> toWorkingDay(dayRequest, settings))
@@ -36,10 +37,6 @@ public class ScheduleMapper {
         return settings;
     }
 
-    /**
-     * Converts a ScheduleSettings Entity into a ScheduleSettingsResponse.
-     * Name: toResponse
-     */
     public static ScheduleSettingsResponse toResponse(ScheduleSettings entity) {
         if (entity == null) return null;
 
@@ -51,9 +48,11 @@ public class ScheduleMapper {
 
         return new ScheduleSettingsResponse(
                 entity.getId(),
+                entity.getReservationType(),
+                entity.getSlotDurationValue(),
+                entity.getSlotDurationUnit(),
                 entity.getMinAdvanceBookingHours(),
                 entity.getMaxAdvanceBookingDays(),
-                entity.getDefaultSlotDurationMinutes(),
                 entity.getAutoConfirmAppointments(),
                 dayResponses
         );

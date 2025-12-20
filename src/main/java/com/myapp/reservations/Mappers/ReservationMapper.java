@@ -8,6 +8,8 @@ import com.myapp.reservations.entities.BusinessSchedule.ReservationStatus;
 import com.myapp.reservations.entities.BusinessSchedule.Offering;
 import com.myapp.reservations.entities.User;
 
+import java.time.LocalDateTime;
+
 public class ReservationMapper {
 
     /**
@@ -21,34 +23,37 @@ public class ReservationMapper {
         reservation.setBusiness(business);
         reservation.setOffering(offering);
         reservation.setUser(user);
-        reservation.setDate(request.date());
-        reservation.setStartTime(request.startTime());
 
-        // Logic: Calculate end time automatically based on service duration
-        if (request.startTime() != null && offering != null) {
-            reservation.setEndTime(request.startTime().plusMinutes(offering.getDurationMinutes()));
+        // 1. Set the Start
+        reservation.setStartDateTime(request.startDateTime());
+
+        // 2. Logic: If endDateTime is provided in request, use it.
+        // Otherwise, calculate it from the offering duration (for Slot-based).
+        if (request.endDateTime() != null) {
+            reservation.setEndDateTime(request.endDateTime());
+        } else if (offering != null && offering.getDurationMinutes() != null) {
+            reservation.setEndDateTime(request.startDateTime().plusMinutes(offering.getDurationMinutes()));
         }
 
-        reservation.setStatus(ReservationStatus.PENDING); // Default status
+        reservation.setStatus(ReservationStatus.PENDING);
         return reservation;
     }
 
-    /**
-     * Converts Reservation Entity into a Response Record
-     * Used for sending data to the Frontend.
-     */
     public static ReservationResponse toResponse(Reservation reservation) {
         if (reservation == null) return null;
 
         return new ReservationResponse(
                 reservation.getId(),
-                reservation.getBusiness().getName(),
+                reservation.getBusiness().getId(),
+                reservation.getOffering().getId(),
                 reservation.getOffering().getName(),
-                reservation.getOffering().getPrice(),
-                reservation.getDate(),
-                reservation.getStartTime(),
-                reservation.getEndTime(),
-                reservation.getStatus().name()
+                reservation.getUser().getId(),
+                reservation.getUser().getName(), // Assuming User has a getName()
+                reservation.getStartDateTime(),
+                reservation.getEndDateTime(),
+                reservation.getStatus(),
+                LocalDateTime.now() // For createdAt, or use a field from entity if you have one
         );
     }
+
 }

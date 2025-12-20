@@ -1,19 +1,21 @@
 package com.myapp.reservations.DTO.ReservationDTOs;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import com.myapp.reservations.entities.BusinessSchedule.ReservationStatus;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ReservationResponse(
-
         UUID id,
-        String businessName,
-        String serviceName,
-        Double price,
-        LocalDate date,
-        LocalTime startTime,
-        LocalTime endTime,
-        String status
+        UUID businessId,
+        UUID offeringId,
+        String offeringName, // e.g., "Main Office" or "Haircut"
+        UUID userId,
+        String userName,
 
-) {
-}
+        LocalDateTime startDateTime,
+        LocalDateTime endDateTime,
+
+        ReservationStatus status,
+        LocalDateTime createdAt
+) {}

@@ -8,12 +8,14 @@ import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.ScheduleSettingsRepository;
 import com.myapp.reservations.Repository.WorkingDayRepository;
 import com.myapp.reservations.entities.Business;
+import com.myapp.reservations.entities.BusinessSchedule.ReservationType;
 import com.myapp.reservations.entities.BusinessSchedule.ScheduleSettings;
 import com.myapp.reservations.entities.BusinessSchedule.WorkingDay;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +37,9 @@ public class ScheduleService {
     public void createDefaultSchedule(Business business) {
         // 1. Create the Settings object
         ScheduleSettings settings = new ScheduleSettings();
-        settings.setDefaultSlotDurationMinutes(30);
+        settings.setSlotDurationValue(30);
+        settings.setSlotDurationUnit(ChronoUnit.MINUTES);
+        settings.setReservationType(ReservationType.SLOT);
         settings.setAutoConfirmAppointments(true);
         settings.setMinAdvanceBookingHours(2);
         settings.setMaxAdvanceBookingDays(30);
@@ -64,27 +68,42 @@ public class ScheduleService {
 
     }
 
-    public void updateSchedule(UUID businessId, ScheduleSettingsRequest request){
+    public void updateSchedule(UUID businessId, ScheduleSettingsRequest request) {
+        if (businessId == null) return;
 
-        if(businessId ==  null){
-            return;
+        ScheduleSettings existing = scheduleSettingsRepository.getScheduleSettingsByBusinessId(businessId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+
+
+        if (request.reservationType() != null) {
+            existing.setReservationType(request.reservationType());
         }
-
-        ScheduleSettings existing =  scheduleSettingsRepository.getScheduleSettingsByBusinessId(businessId).orElseThrow(()-> new RuntimeException("schedule not found"));
-
-        if(request.minAdvanceBookingHours() != null ){existing.setMinAdvanceBookingHours(request.minAdvanceBookingHours());}
-        if(request.maxAdvanceBookingDays() != null ){existing.setMaxAdvanceBookingDays(request.maxAdvanceBookingDays());}
-        if(request.autoConfirmAppointments() !=null){existing.setAutoConfirmAppointments(request.autoConfirmAppointments());}
-        if(request.defaultSlotDurationMinutes() !=null){existing.setDefaultSlotDurationMinutes(request.defaultSlotDurationMinutes());}
+        if (request.slotDurationValue() != null) {
+            existing.setSlotDurationValue(request.slotDurationValue());
+        }
+        if (request.slotDurationUnit() != null) {
+            existing.setSlotDurationUnit(request.slotDurationUnit());
+        }
+        if (request.minAdvanceBookingHours() != null) {
+            existing.setMinAdvanceBookingHours(request.minAdvanceBookingHours());
+        }
+        if (request.maxAdvanceBookingDays() != null) {
+            existing.setMaxAdvanceBookingDays(request.maxAdvanceBookingDays());
+        }
+        if (request.autoConfirmAppointments() != null) {
+            existing.setAutoConfirmAppointments(request.autoConfirmAppointments());
+        }
 
         for (WorkingDayRequest dayReq : request.workingDays()) {
             WorkingDay existingDay = workingDayRepository
                     .findByScheduleSettingsIdAndDayOfWeek(existing.getId(), DayOfWeek.valueOf(dayReq.dayOfWeek()));
+
             updateDayDetails(existingDay, dayReq);
         }
 
         scheduleSettingsRepository.save(existing);
     }
+
     private void updateDayDetails(WorkingDay entity, WorkingDayRequest req) {
         // Map data from DTO to Entity
         entity.setStartTime(req.startTime());
