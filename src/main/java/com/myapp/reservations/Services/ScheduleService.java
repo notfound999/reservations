@@ -1,5 +1,6 @@
 package com.myapp.reservations.Services;
 
+import com.myapp.reservations.DTO.ReservationDTOs.ReservationRequest;
 import com.myapp.reservations.DTO.ScheduleSettingsDTOs.ScheduleSettingsRequest;
 import com.myapp.reservations.DTO.ScheduleSettingsDTOs.ScheduleSettingsResponse;
 import com.myapp.reservations.DTO.WorkingDayDTOs.WorkingDayRequest;
@@ -11,6 +12,7 @@ import com.myapp.reservations.entities.Business;
 import com.myapp.reservations.entities.BusinessSchedule.ReservationType;
 import com.myapp.reservations.entities.BusinessSchedule.ScheduleSettings;
 import com.myapp.reservations.entities.BusinessSchedule.WorkingDay;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -68,6 +70,7 @@ public class ScheduleService {
 
     }
 
+    @Transactional
     public void updateSchedule(UUID businessId, ScheduleSettingsRequest request) {
         if (businessId == null) return;
 
@@ -157,4 +160,6 @@ public class ScheduleService {
     public List<ScheduleSettingsResponse> getAllSchedules(){
         return scheduleSettingsRepository.findAll().stream().map(ScheduleMapper::toResponse).toList();
     }
+
+
 }
