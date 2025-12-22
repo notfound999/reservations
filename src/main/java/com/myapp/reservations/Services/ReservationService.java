@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Service
 public class ReservationService {
@@ -74,9 +75,11 @@ public class ReservationService {
 
         validateWorkingHours(reservationRequest,schedule);
 
+        validateAdvanceBookingRequirements(reservationRequest.startDateTime(),schedule);
+
         Business business = businessRepository.getBusinessById(reservationRequest.businessId()).orElseThrow(()-> new RuntimeException("Business not found"));
 
-        if (reservationRepository.hasReservationConflict(business.getId(), reservationRequest.startDateTime(), reservationRequest.endDateTime())) {
+        if (reservationRepository.existsOverlap(business.getId(), reservationRequest.startDateTime(), reservationRequest.endDateTime())) {
             throw new RuntimeException("This time slot is already reserved by another customer.");
         }
 
@@ -97,13 +100,61 @@ public class ReservationService {
 
         reservation.setStartDateTime(reservationRequest.startDateTime());
         reservation.setEndDateTime(reservationRequest.endDateTime());
-        reservation.setStatus(ReservationStatus.PENDING);
-        reservation.setCreatedAt(LocalDateTime.now());
 
+        if (schedule.getAutoConfirmAppointments()==true) {
+            reservation.setStatus(ReservationStatus.CONFIRMED);
+        } else {
+            reservation.setStatus(ReservationStatus.PENDING);
+        }
+        reservation.setCreatedAt(LocalDateTime.now());
 
         reservationRepository.save(reservation);
 
         return ReservationMapper.toResponse(reservation);
+    }
+
+    private void validateAdvanceBookingRequirements(LocalDateTime requestedStart, ScheduleSettings settings) {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 1. Check Minimum Advance Booking (e.g., Must book at least 2 hours ahead)
+        if (settings.getMinAdvanceBookingHours() != null) {
+            LocalDateTime earliestAllowed = now.plusHours(settings.getMinAdvanceBookingHours());
+            if (requestedStart.isBefore(earliestAllowed)) {
+                throw new RuntimeException("This booking is too short-notice. Minimum lead time is "
+                        + settings.getMinAdvanceBookingHours() + " hours.");
+            }
+        }
+
+        // 2. Check Maximum Advance Booking (e.g., Cannot book more than 30 days out)
+        if (settings.getMaxAdvanceBookingDays() != null) {
+            LocalDateTime latestAllowed = now.plusDays(settings.getMaxAdvanceBookingDays());
+            if (requestedStart.isAfter(latestAllowed)) {
+                throw new RuntimeException("This date is too far in the future. You can only book up to "
+                        + settings.getMaxAdvanceBookingDays() + " days in advance.");
+            }
+        }
+
+        // 3. Past Date Check (Sanity check)
+        if (requestedStart.isBefore(now)) {
+            throw new RuntimeException("Cannot create a reservation for a past date.");
+        }
+    }
+
+    @Transactional
+    public void cancelReservation(UUID reservationId) {
+        // 1. Find the reservation
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found with ID: " + reservationId));
+
+        // 2. Business Logic: Don't cancel if it's already cancelled
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new RuntimeException("Reservation is already cancelled.");
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+
+        // 4. Save
+        reservationRepository.save(reservation);
     }
 
 

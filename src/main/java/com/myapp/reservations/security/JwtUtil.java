@@ -21,7 +21,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(user)
                 .issuedAt(new Date())
-                .expiration(new Date(new Date().getTime()+360000))
+                .expiration(new Date(new Date().getTime()+36000000))
                 .signWith(key)
                 .compact();
     }

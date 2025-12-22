@@ -11,6 +11,7 @@ import com.myapp.reservations.entities.BusinessSchedule.WorkingDay;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -62,25 +63,29 @@ public class AvailabilityService {
     private List<BusyBlockResponse> calculateClosedBlocks(ScheduleSettings settings, LocalDateTime start, LocalDateTime end) {
         List<BusyBlockResponse> closedBlocks = new ArrayList<>();
 
-        // Loop through every day in the requested view range
-        for (LocalDateTime date = start; date.isBefore(end); date = date.plusDays(1)) {
-            DayOfWeek dow = date.getDayOfWeek();
+        // Normalize 'current' to the start of the day to ensure we cover the full day
+        for (LocalDate date = start.toLocalDate(); !date.isAfter(end.toLocalDate()); date = date.plusDays(1)) {
+            final DayOfWeek dow = date.getDayOfWeek();
             WorkingDay dayConfig = settings.getWorkingDays().stream()
                     .filter(wd -> wd.getDayOfWeek().equals(dow))
                     .findFirst().orElse(null);
 
+            LocalDateTime startOfDay = date.atStartOfDay();
+            LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+
             if (dayConfig == null || dayConfig.isDayOff()) {
-                // Whole day is busy
-                closedBlocks.add(new BusyBlockResponse(date.with(LocalTime.MIN), date.with(LocalTime.MAX), "CLOSED"));
+                closedBlocks.add(new BusyBlockResponse(startOfDay, endOfDay, "CLOSED"));
             } else {
-                // Add block for before opening
-                closedBlocks.add(new BusyBlockResponse(date.with(LocalTime.MIN), date.with(dayConfig.getStartTime()), "CLOSED"));
-                // Add block for lunch break if it exists
-                if (dayConfig.getBreakStartTime() != null) {
-                    closedBlocks.add(new BusyBlockResponse(date.with(dayConfig.getBreakStartTime()), date.with(dayConfig.getBreakEndTime()), "BREAK"));
+                // 1. Before Opening
+                closedBlocks.add(new BusyBlockResponse(startOfDay, date.atTime(dayConfig.getStartTime()), "CLOSED"));
+
+                // 2. Lunch Break
+                if (dayConfig.getBreakStartTime() != null && dayConfig.getBreakEndTime() != null) {
+                    closedBlocks.add(new BusyBlockResponse(date.atTime(dayConfig.getBreakStartTime()), date.atTime(dayConfig.getBreakEndTime()), "BREAK"));
                 }
-                // Add block for after closing
-                closedBlocks.add(new BusyBlockResponse(date.with(dayConfig.getEndTime()), date.with(LocalTime.MAX), "CLOSED"));
+
+                // 3. After Closing
+                closedBlocks.add(new BusyBlockResponse(date.atTime(dayConfig.getEndTime()), endOfDay, "CLOSED"));
             }
         }
         return closedBlocks;
