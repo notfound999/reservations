@@ -75,12 +75,10 @@ public class AvailabilityService {
             } else {
                 // Add block for before opening
                 closedBlocks.add(new BusyBlockResponse(date.with(LocalTime.MIN), date.with(dayConfig.getStartTime()), "CLOSED"));
-
                 // Add block for lunch break if it exists
                 if (dayConfig.getBreakStartTime() != null) {
                     closedBlocks.add(new BusyBlockResponse(date.with(dayConfig.getBreakStartTime()), date.with(dayConfig.getBreakEndTime()), "BREAK"));
                 }
-
                 // Add block for after closing
                 closedBlocks.add(new BusyBlockResponse(date.with(dayConfig.getEndTime()), date.with(LocalTime.MAX), "CLOSED"));
             }

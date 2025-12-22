@@ -2,6 +2,7 @@ package com.myapp.reservations.Services;
 
 import com.myapp.reservations.DTO.ReservationDTOs.ReservationRequest;
 import com.myapp.reservations.DTO.ReservationDTOs.ReservationResponse;
+import com.myapp.reservations.Mappers.ReservationMapper;
 import com.myapp.reservations.Repository.*;
 import com.myapp.reservations.entities.Business;
 import com.myapp.reservations.entities.BusinessSchedule.*;
@@ -20,13 +21,16 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ScheduleSettingsRepository scheduleSettingsRepository;
     private final OfferingRepository offeringRepository;
-    private UserRepository userRepository;
+    private final TimeOffRepository timeOffRepository;
+    private final UserRepository userRepository;
 
-    public ReservationService(BusinessRepository businessRepository , ReservationRepository reservationRepository , ScheduleSettingsRepository scheduleSettingsRepository,OfferingRepository offeringRepository) {
+    public ReservationService(BusinessRepository businessRepository , ReservationRepository reservationRepository , ScheduleSettingsRepository scheduleSettingsRepository,OfferingRepository offeringRepository,UserRepository userRepository,TimeOffRepository timeOffRepository) {
         this.businessRepository = businessRepository;
         this.reservationRepository=reservationRepository;
         this.scheduleSettingsRepository = scheduleSettingsRepository;
         this.offeringRepository = offeringRepository;
+        this.timeOffRepository= timeOffRepository;
+        this.userRepository = userRepository;
     }
 
     private void validateWorkingHours(ReservationRequest request, ScheduleSettings settings) {
@@ -60,17 +64,27 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse createReservation(ReservationRequest reservationRequest){
+
         if(reservationRequest == null){
             throw new RuntimeException("Request is empty");
         }
+
         ScheduleSettings schedule = scheduleSettingsRepository.getScheduleSettingsByBusinessId(reservationRequest.businessId())
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
 
-
         validateWorkingHours(reservationRequest,schedule);
 
+        Business business = businessRepository.getBusinessById(reservationRequest.businessId()).orElseThrow(()-> new RuntimeException("Business not found"));
+
+        if (reservationRepository.hasReservationConflict(business.getId(), reservationRequest.startDateTime(), reservationRequest.endDateTime())) {
+            throw new RuntimeException("This time slot is already reserved by another customer.");
+        }
+
+        if (timeOffRepository.hasTimeOffConflict(business.getId(), reservationRequest.startDateTime(), reservationRequest.endDateTime())) {
+            throw new RuntimeException("The business is unavailable during this time (Maintenance/Time Off).");
+        }
+
         Reservation reservation =  new Reservation();
-        Business business = businessRepository.getBusinessById(reservationRequest.businessId()).orElseThrow(() ->new RuntimeException("Business Not Found"));
         reservation.setBusiness(business);
 
         Offering offering = offeringRepository.findById(reservationRequest.serviceId())
@@ -87,6 +101,9 @@ public class ReservationService {
         reservation.setCreatedAt(LocalDateTime.now());
 
 
+        reservationRepository.save(reservation);
+
+        return ReservationMapper.toResponse(reservation);
     }
 
 
