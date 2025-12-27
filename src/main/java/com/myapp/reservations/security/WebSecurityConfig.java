@@ -45,22 +45,18 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
-                .exceptionHandling(e ->
-                        e.authenticationEntryPoint(unauthorizedHandler)
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for testing with Postman/cURL
+                .authorizeHttpRequests(auth -> auth
+                        // Allow everyone to see availability
+                        .requestMatchers("/api/availability/**").permitAll()
+                        // Allow everyone to handle reservations (Temporary for MVP testing)
+                        .requestMatchers("/api/reservations/**").permitAll()
+                        // Allow H2 console if you use it
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(s ->
-                        s.sessionCreationPolicy(
-                                org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(a ->
-                        a.requestMatchers("/api/auth/**", "/api/welcome").permitAll()
-                                .anyRequest().authenticated()
-                );
+                .headers(headers -> headers.frameOptions(frame -> frame.disable())); // Required for H2 console
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
-    }
-
+}
 }
