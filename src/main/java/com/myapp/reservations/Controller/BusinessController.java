@@ -59,8 +59,8 @@ public class BusinessController {
         businessService.deleteBusinessById(id);
     }
 
-    @GetMapping("{id}/admins")
-    public List<UserResponse> getAllAdmins(@PathVariable(value = "id") UUID businessId){
+    @GetMapping("{businessId}/admins")
+    public List<UserResponse> getAllAdmins(@PathVariable(value = "businessId") UUID businessId){
         if (businessId == null ) return null ;
         return businessService.getAllAdmins(businessId);
     }

@@ -31,8 +31,8 @@ public class TimeOffController {
     }
 
     // Delete a specific time-off block (e.g., if a vacation is cancelled)
-    @DeleteMapping("/{id}")
-    public void deleteTimeOff(@PathVariable UUID id) {
-        timeOffService.deleteTimeOff(id);
+    @DeleteMapping("/{timeOffId}")
+    public void deleteTimeOff(@PathVariable UUID timeOffId) {
+        timeOffService.deleteTimeOff(timeOffId);
     }
 }

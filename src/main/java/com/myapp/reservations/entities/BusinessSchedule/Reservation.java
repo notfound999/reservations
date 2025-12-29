@@ -36,7 +36,6 @@ public class Reservation {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Use LocalDateTime to support multi-day ranges
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 

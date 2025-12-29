@@ -40,12 +40,12 @@ public class UserSelfController {
     }
 
     @DeleteMapping
-    public void deleteMyProfile() {
+    public void deleteMyProficreatele() {
         UUID currentUserId = userService.getCurrentUserId();
         userService.deleteUserById(currentUserId);
     }
 
-    @PostMapping("/create/business")
+    @PostMapping("/business")
     public BusinessResponse createMyBusiness(@Valid @RequestBody BusinessRequest request) {
         UUID currentUserId = userService.getCurrentUserId();
         return businessService.createBusiness(request, currentUserId);
