@@ -1,185 +1,170 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Building2, Users, ArrowRight, Star, CheckCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from 'react';
+import { Search, SlidersHorizontal, Sparkles, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import BusinessCard from '@/components/BusinessCard';
+import { businessApi, offeringsApi } from '@/lib/api';
+import type { Business } from '@/lib/types';
+
+const categories = ['All', 'Spa & Wellness', 'Barbershop', 'Beauty Salon', 'Fitness', 'Yoga & Meditation', 'Pet Services'];
 
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-display font-bold text-foreground">BookEase</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost" size="lg">Sign In</Button>
-            </Link>
-            <Link to="/signup">
-              <Button variant="gradient" size="lg">Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [lowestPrices, setLowestPrices] = useState<Record<string, number>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center animate-slide-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-light text-primary text-sm font-medium mb-6">
-              <Star className="w-4 h-4" />
-              Trusted by 10,000+ businesses
-            </div>
-            <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-6 leading-tight">
-              Simplify Your
-              <span className="text-gradient block">Reservations</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              The all-in-one platform for managing appointments, scheduling, and growing your service business. Start for free today.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup">
-                <Button variant="gradient" size="xl" className="gap-2">
-                  Start Free Trial <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button variant="outline" size="xl">
-                  View Demo
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mt-24">
-            {[
-              {
-                icon: Building2,
-                title: "Multi-Business Support",
-                description: "Manage multiple locations and business profiles from one dashboard."
-              },
-              {
-                icon: Clock,
-                title: "Smart Scheduling",
-                description: "Customizable time slots, buffer times, and automatic booking confirmations."
-              },
-              {
-                icon: Users,
-                title: "Team Management",
-                description: "Add admins and staff to help manage your business operations."
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await businessApi.getAll();
+        setBusinesses(data);
+        
+        // Fetch lowest prices for each business
+        const prices: Record<string, number> = {};
+        await Promise.all(
+          data.map(async (business) => {
+            try {
+              const offerings = await offeringsApi.getByBusiness(business.id);
+              if (offerings.length > 0) {
+                prices[business.id] = Math.min(...offerings.map(o => o.price));
               }
-            ].map((feature, index) => (
-              <div 
-                key={feature.title}
-                className="group p-8 rounded-2xl bg-card shadow-card hover:shadow-card-hover transition-all duration-300 animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="w-14 h-14 rounded-xl bg-primary-light flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <feature.icon className="w-7 h-7 text-primary" />
-                </div>
-                <h3 className="text-xl font-display font-semibold text-foreground mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            } catch {
+              // Silently handle individual business offering fetch errors
+            }
+          })
+        );
+        setLowestPrices(prices);
+      } catch (err) {
+        setError('Failed to load businesses. Please try again.');
+        console.error('Error fetching businesses:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-surface">
-        <div className="container mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: "10K+", label: "Active Businesses" },
-              { value: "1M+", label: "Reservations Made" },
-              { value: "99.9%", label: "Uptime" },
-              { value: "4.9★", label: "Customer Rating" }
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-4xl md:text-5xl font-display font-bold text-gradient mb-2">{stat.value}</div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    fetchBusinesses();
+  }, []);
 
-      {/* Benefits Section */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-display font-bold text-foreground mb-4">
-              Everything You Need
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Powerful features to streamline your booking workflow
+  const filteredBusinesses = useMemo(() => {
+    return businesses.filter((business) => {
+      const matchesSearch = 
+        business.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        business.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        business.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'All' || business.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [businesses, searchQuery, selectedCategory]);
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-hero-gradient py-16 lg:py-24">
+        <div className="container">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+              Book services you'll{' '}
+              <span className="text-gradient-warm">love</span>
+            </h1>
+            <p className="text-lg text-muted-foreground mb-8">
+              Discover and book appointments at the best local businesses. 
+              From spas to salons, fitness to pet care – all in one place.
             </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              "Custom service offerings with pricing",
-              "Flexible schedule management",
-              "Automatic appointment confirmations",
-              "Time-off and holiday management",
-              "Multi-admin business access",
-              "Customer reservation history"
-            ].map((benefit, index) => (
-              <div 
-                key={benefit}
-                className="flex items-center gap-4 p-5 rounded-xl bg-card shadow-sm hover:shadow-card transition-shadow"
-              >
-                <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-5 h-5 text-success" />
-                </div>
-                <span className="text-foreground font-medium">{benefit}</span>
+
+            {/* Search Bar */}
+            <div className="flex gap-2 max-w-xl mx-auto">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search businesses or services..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-14 text-base rounded-xl bg-card shadow-card"
+                />
               </div>
+              <Button size="lg" className="h-14 px-6 rounded-xl" variant="hero">
+                <Search className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="py-8 border-b">
+        <div className="container">
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? 'default' : 'secondary'}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className="whitespace-nowrap rounded-full"
+              >
+                {category}
+              </Button>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto max-w-4xl">
-          <div className="relative rounded-3xl bg-gradient-hero p-12 md:p-16 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-5xl font-display font-bold text-primary-foreground mb-6">
-                Ready to Transform Your Business?
+      {/* Business Grid */}
+      <section className="py-12">
+        <div className="container">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-semibold">
+                {selectedCategory === 'All' ? 'Popular Businesses' : selectedCategory}
               </h2>
-              <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
-                Join thousands of businesses that have streamlined their reservations with BookEase.
+              <p className="text-muted-foreground">
+                {filteredBusinesses.length} businesses available
               </p>
-              <Link to="/signup">
-                <Button size="xl" className="bg-card text-foreground hover:bg-card/90">
-                  Start Your Free Trial
-                </Button>
-              </Link>
             </div>
+            <Button variant="outline" className="gap-2 hidden sm:flex">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+            </Button>
           </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-destructive mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          ) : filteredBusinesses.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredBusinesses.map((business) => (
+                <BusinessCard
+                  key={business.id}
+                  business={business}
+                  lowestPrice={lowestPrices[business.id]}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No businesses found</h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search or filters
+              </p>
+            </div>
+          )}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-border">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-display font-semibold text-foreground">BookEase</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © 2024 BookEase. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

@@ -26,7 +26,6 @@ public class ReservationController {
 
     }
 
-
     // This endpoint allows: PATCH http://localhost:8080/api/reservations/{id}/cancel
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelReservation(@PathVariable UUID id) {
