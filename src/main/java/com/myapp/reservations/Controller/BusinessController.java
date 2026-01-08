@@ -65,8 +65,9 @@ public class BusinessController {
         return businessService.getAllAdmins(businessId);
     }
 
-    @PutMapping("{businessId}/admins/")
+    @PutMapping("{businessId}/admins")
     public void addAdminToBusiness(@PathVariable UUID businessId, @RequestBody UUID userId){
         businessService.addAdminToBusiness(businessId,userId);
     }
+
 }

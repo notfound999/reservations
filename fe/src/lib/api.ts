@@ -27,12 +27,13 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
-  if (token) {
+  // Only send the header if the token is a real JWT (contains dots)
+  // Real JWTs look like: xxxxx.yyyyy.zzzzz
+  if (token && token.includes('.')) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
-
 // Handle 401 responses - redirect to login
 api.interceptors.response.use(
   (response) => response,
@@ -48,12 +49,12 @@ api.interceptors.response.use(
 
 // ===== Auth API =====
 export const authApi = {
-  signIn: async (data: SignInRequest): Promise<AuthResponse> => {
+  signIn: async (data: SignInForm): Promise<AuthResponse> => {
     const response = await api.post('/auth/signin', data);
     return response.data;
   },
 
-  signUp: async (data: UserRequest): Promise<AuthResponse> => {
+  signUp: async (data: Omit<SignUpForm, "confirmPassword">): Promise<AuthResponse> => {
     const response = await api.post('/auth/signup', data);
     return response.data;
   },
@@ -72,7 +73,7 @@ export const businessApi = {
   },
 
   getById: async (id: string): Promise<Business> => {
-    const response = await api.get(`/businesses/${id}`);
+    const response = await api.get(`/businesses/by-business-id/${id}`);
     return response.data;
   },
 
@@ -87,7 +88,7 @@ export const businessApi = {
   },
 
   getMyBusinesses: async (): Promise<Business[]> => {
-    const response = await api.get('/businesses/mine');
+    const response = await api.get('/me/businesses');
     return response.data;
   },
 };
@@ -95,7 +96,7 @@ export const businessApi = {
 // ===== Offerings API =====
 export const offeringsApi = {
   getByBusiness: async (businessId: string): Promise<Offering[]> => {
-    const response = await api.get(`/offerings/${businessId}`);
+    const response = await api.get(`/businesses/by-business-id/${businessId}`);
     return response.data;
   },
 

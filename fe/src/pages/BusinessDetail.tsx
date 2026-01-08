@@ -27,23 +27,34 @@ const BusinessDetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
-      
+
       try {
         setIsLoading(true);
         setError(null);
-        
-        const [businessData, offeringsData, reviewsData] = await Promise.all([
+
+        // 1. Fetch the Essential Data first
+        // We keep these together because the page needs them to function
+        const [businessData, offeringsData] = await Promise.all([
           businessApi.getById(id),
           offeringsApi.getByBusiness(id),
-          reviewsApi.getByBusiness(id),
         ]);
-        
+
         setBusiness(businessData);
         setOfferings(offeringsData);
-        setReviews(reviewsData);
+
+        // 2. Fetch Reviews separately so if it fails (403/404),
+        // it doesn't crash the whole page
+        try {
+          const reviewsData = await reviewsApi.getByBusiness(id);
+          setReviews(reviewsData);
+        } catch (reviewErr) {
+          console.warn('Reviews failed to load, but that is fine:', reviewErr);
+          setReviews([]); // Set to empty array so the UI doesn't break
+        }
+
       } catch (err) {
-        setError('Failed to load business details. Please try again.');
-        console.error('Error fetching business:', err);
+        setError('Failed to load business details. Please check if the backend is running.');
+        console.error('Critical fetch error:', err);
       } finally {
         setIsLoading(false);
       }

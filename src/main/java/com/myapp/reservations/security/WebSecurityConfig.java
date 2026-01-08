@@ -51,16 +51,24 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                // Change the cors line to this:
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 1. Lejo login/signup
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // 2. Lejo leximin e bizneseve, shërbimeve dhe orareve për të gjithë (Public)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/businesses/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/offerings/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/availabilties/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/schedules/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/**").permitAll()
+
+                        // 3. Çdo gjë tjetër (POST reservations, UPDATE profile, etj.) kërkon login
                         .anyRequest().authenticated()
                 );
 
-        // Add your JWT filter
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -68,7 +76,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080")); // Your React Port
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Your React Port
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
