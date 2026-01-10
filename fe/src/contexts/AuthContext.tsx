@@ -3,8 +3,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 // Define the User interface to match your Java User Entity/DTO
 interface User {
   id: string | number;
-  username: string;
+  name: string;
   email?: string;
+  phone: string;
   roles?: string[];
 }
 
@@ -43,12 +44,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (token: string, userData: User) => {
-    // 1. Save to LocalStorage for persistence across refreshes
+    // 1. Save to localStorage (This keeps you logged in if you refresh)
     localStorage.setItem('authToken', token);
     localStorage.setItem('user', JSON.stringify(userData));
 
-    // 2. Update the state so the whole app knows we are logged in
+    // 2. Update React State (This changes "Sign In" to "Profile" immediately)
     setUser(userData);
+    console.log("User state updated:", userData);
   };
 
   const logout = () => {

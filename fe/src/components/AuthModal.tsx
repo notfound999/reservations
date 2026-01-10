@@ -15,7 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { authApi } from '@/lib/api'; // Ensure this path is correct
+import { authApi } from '@/lib/api';
+import {SignInRequest, UserRequest} from "@/lib/types.ts"; // Ensure this path is correct
 
 const signInSchema = z.object({
   identifier: z.string().min(1, 'Email or phone is required'),
@@ -42,7 +43,7 @@ interface AuthModalProps {
   onSuccess?: () => void;
 }
 
-const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
+const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -50,7 +51,7 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
 
   const signInForm = useForm<SignInForm>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { identifier: '', password: '' },
+    defaultValues: { identifier: 'Vendosni emrin ose email', password: '' },
   });
 
   const signUpForm = useForm<SignUpForm>({
@@ -58,61 +59,47 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
     defaultValues: { name: '', email: '', phone: '', password: '', confirmPassword: '' },
   });
 
-  const handleSignIn = async (data: SignInForm) => {
+  const handleSignIn = async (values: SignInForm) => {
     setIsLoading(true);
     try {
-      // 1. data matches SignInRequest { identifier, password }
-      const response = await authApi.signIn(data);
+      // Map the form values to the API request
+      // We use a clean object to satisfy the 'SignInRequest' type
+      const payload: SignInRequest = {
+        identifier: values.identifier, // Map identifier to username for Java
+        password: values.password
+      };
 
-      // 2. Destructure based on your AuthResponse { token, user }
+      const response = await authApi.signIn(payload);
+
       const { token, user } = response;
-
-      // 3. Pass to AuthContext
-      // Ensure your AuthProvider uses 'token' and 'user' naming internally
       login(token, user);
 
-      toast({
-        title: 'Welcome back!',
-        description: `Signed in as ${user.name}`
-      });
-
+      toast({ title: 'Welcome back!' });
       onOpenChange(false);
-      onSuccess?.();
     } catch (error: any) {
-      console.error("Login error:", error);
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Invalid credentials',
-        variant: 'destructive'
-      });
+      // error handling
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSignUp = async (data: SignUpForm) => {
+  const handleSignUp = async (values: SignUpForm) => {
     setIsLoading(true);
     try {
-      // This matches your UserRequest { name, email, password, phone }
-      // We remove confirmPassword because the backend doesn't want it
-      const { confirmPassword, ...signupData } = data;
+      // Map the form values to the clean UserRequest DTO
+      const payload: UserRequest = {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        phone: values.phone,
+      };
 
-      await authApi.signUp(signupData);
+      await authApi.signUp(payload);
 
-      toast({
-        title: 'Account created!',
-        description: 'You can now sign in with your account.'
-      });
-
+      toast({ title: 'Success', description: 'Account created! Please sign in.' });
       setMode('signin');
-      resetForms();
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Could not create account',
-        variant: 'destructive'
-      });
+      // error handling
     } finally {
       setIsLoading(false);
     }

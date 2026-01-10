@@ -19,7 +19,6 @@ public class AvailabilityController {
         this.availabilityService=availabilityService;
     }
 
-    @GetMapping("/{businessId}")
     public  List<BusyBlockResponse> getBusyBlocks(@PathVariable UUID businessId,
                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {

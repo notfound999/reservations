@@ -34,7 +34,6 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-// Handle 401 responses - redirect to login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -49,12 +48,12 @@ api.interceptors.response.use(
 
 // ===== Auth API =====
 export const authApi = {
-  signIn: async (data: SignInForm): Promise<AuthResponse> => {
+  signIn: async (data: SignInRequest): Promise<AuthResponse> => {
     const response = await api.post('/auth/signin', data);
     return response.data;
   },
 
-  signUp: async (data: Omit<SignUpForm, "confirmPassword">): Promise<AuthResponse> => {
+  signUp: async (data: Omit<UserRequest, "confirmPassword">): Promise<AuthResponse> => {
     const response = await api.post('/auth/signup', data);
     return response.data;
   },
