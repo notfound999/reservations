@@ -1,5 +1,6 @@
 package com.myapp.reservations.Controller;
 
+import com.myapp.reservations.DTO.AuthResponse;
 import com.myapp.reservations.DTO.SignInRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserResponse;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
@@ -41,7 +42,7 @@ public class AuthenticationController {
 
 
     @PostMapping("/signin")
-    public String authenticateUser(@RequestBody SignInRequest user) {
+    public AuthResponse authenticateUser(@RequestBody SignInRequest user) {
         String login = user.identifier();
 
 
@@ -60,15 +61,36 @@ public class AuthenticationController {
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return jwtUtils.generateToken(userDetails.getUsername());
+        String token = jwtUtils.generateToken(userDetails.getUsername());
+
+        // Get the full user details to return in response
+
+        User authenticatedUser = userRepository.findByName(userDetails.getUsername());
+        if(authenticatedUser==(null)){
+            throw new RuntimeException("User not found");
+        }
+        UserResponse userResponse = userService.findById(authenticatedUser.getId());
+
+        return new AuthResponse(token, userResponse);
     }
 
     @PostMapping("/signup")
-    public UserResponse registerUser(@RequestBody UserRequest user) {
+    public AuthResponse registerUser(@RequestBody UserRequest user) {
         if (userRepository.existsByName(user.name())||userRepository.existsByEmail(user.email())) {
             throw new IllegalArgumentException("User with this email already exists");
 
         }
-         return userService.createUser(user);
+        UserResponse newUser = userService.createUser(user);
+
+        // Generate token for the newly created user
+        String token = jwtUtils.generateToken(user.name());
+
+        return new AuthResponse(token, newUser);
+    }
+
+    @GetMapping("/profile")
+    public UserResponse getProfile() {
+        java.util.UUID currentUserId = userService.getCurrentUserId();
+        return userService.findById(currentUserId);
     }
 }
