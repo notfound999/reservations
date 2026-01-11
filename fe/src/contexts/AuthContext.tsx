@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (token: string, user: { id: string; name: string; email: string; phone: string }) => void;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,7 +58,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     setUser(null);
-    // Optional: window.location.href = '/login';
+  };
+
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
   };
 
   return (
@@ -68,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isLoading,
             login,
             logout,
+            updateUser,
           }}
       >
         {children}

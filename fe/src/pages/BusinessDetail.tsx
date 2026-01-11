@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  MapPin, Phone, Clock, Star, ChevronLeft, 
-  Calendar, MessageSquare, Loader2 
+import {
+  MapPin, Phone, Clock, Star, ChevronLeft,
+  Calendar, MessageSquare, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BookingModal from '@/components/BookingModal';
+import ReviewModal from '@/components/ReviewModal';
 import { businessApi, offeringsApi, reviewsApi } from '@/lib/api';
 import type { Business, Offering, Review } from '@/lib/types';
 import { format } from 'date-fns';
@@ -21,8 +22,19 @@ const BusinessDetail = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [selectedOffering, setSelectedOffering] = useState<Offering | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    try {
+      const reviewsData = await reviewsApi.getByBusiness(id);
+      setReviews(reviewsData);
+    } catch (err) {
+      console.warn('Reviews failed to load:', err);
+    }
+  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -209,7 +221,11 @@ const BusinessDetail = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">Reviews</h2>
-                <Button variant="ghost" className="gap-2">
+                <Button
+                  variant="ghost"
+                  className="gap-2"
+                  onClick={() => setIsReviewModalOpen(true)}
+                >
                   <MessageSquare className="h-4 w-4" />
                   Write a Review
                 </Button>
@@ -312,6 +328,17 @@ const BusinessDetail = () => {
           offering={selectedOffering}
           businessName={business.name}
           businessId={business.id}
+        />
+      )}
+
+      {/* Review Modal */}
+      {business && (
+        <ReviewModal
+          open={isReviewModalOpen}
+          onOpenChange={setIsReviewModalOpen}
+          businessId={business.id}
+          businessName={business.name}
+          onReviewSubmitted={fetchReviews}
         />
       )}
     </div>

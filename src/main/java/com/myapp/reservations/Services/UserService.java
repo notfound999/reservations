@@ -1,16 +1,21 @@
 package com.myapp.reservations.Services;
 
+import com.myapp.reservations.DTO.UserDTOs.ProfileUpdateRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserResponse;
 import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.UserRepository;
 import com.myapp.reservations.entities.Role;
 import com.myapp.reservations.entities.User;
+import com.myapp.reservations.security.AuthTokenFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -118,10 +123,44 @@ public class UserService {
         return UserMapper.toResponse(saved);
     }
 
+    @Transactional
+    public UserResponse updateProfile(UUID id, ProfileUpdateRequest request) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.name() != null) existing.setName(request.name());
+        if (request.email() != null) existing.setEmail(request.email());
+        if (request.phone() != null) existing.setPhone(request.phone());
+
+        // Only update password if provided
+        if (request.password() != null && !request.password().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(request.password()));
+        }
+
+        User saved = userRepository.save(existing);
+        return UserMapper.toResponse(saved);
+    }
+
     public UUID getCurrentUserId() {
+        // First try to get userId from request attribute (set by AuthTokenFilter from JWT)
+        ServletRequestAttributes requestAttributes =
+            (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (requestAttributes != null) {
+            HttpServletRequest request = requestAttributes.getRequest();
+            UUID userId = (UUID) request.getAttribute(AuthTokenFilter.USER_ID_ATTRIBUTE);
+            if (userId != null) {
+                return userId;
+            }
+        }
+
+        // Fallback to name lookup for backward compatibility with old tokens
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByName(auth.getName());
-        return user.getId(); // UUID from database
+        if (user == null) {
+            throw new RuntimeException("User not found. Please log in again.");
+        }
+        return user.getId();
     }
 
 

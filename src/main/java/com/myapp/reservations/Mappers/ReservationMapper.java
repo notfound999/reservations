@@ -25,14 +25,11 @@ public class ReservationMapper {
         reservation.setUser(user);
 
         // 1. Set the Start
-        reservation.setStartDateTime(request.startDateTime());
+        reservation.setStartDateTime(request.startTime());
 
-        // 2. Logic: If endDateTime is provided in request, use it.
-        // Otherwise, calculate it from the offering duration (for Slot-based).
-        if (request.endDateTime() != null) {
-            reservation.setEndDateTime(request.endDateTime());
-        } else if (offering != null && offering.getDurationMinutes() != null) {
-            reservation.setEndDateTime(request.startDateTime().plusMinutes(offering.getDurationMinutes()));
+        // 2. Calculate endDateTime from the offering duration
+        if (offering != null && offering.getDurationMinutes() != null) {
+            reservation.setEndDateTime(request.startTime().plusMinutes(offering.getDurationMinutes()));
         }
 
         reservation.setStatus(ReservationStatus.PENDING);
@@ -45,14 +42,15 @@ public class ReservationMapper {
         return new ReservationResponse(
                 reservation.getId(),
                 reservation.getBusiness().getId(),
+                reservation.getBusiness().getName(),
                 reservation.getOffering().getId(),
                 reservation.getOffering().getName(),
                 reservation.getUser().getId(),
-                reservation.getUser().getName(), // Assuming User has a getName()
+                reservation.getUser().getName(),
                 reservation.getStartDateTime(),
                 reservation.getEndDateTime(),
                 reservation.getStatus(),
-                LocalDateTime.now() // For createdAt, or use a field from entity if you have one
+                LocalDateTime.now()
         );
     }
 

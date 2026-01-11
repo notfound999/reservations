@@ -26,6 +26,9 @@ public class WebSecurityConfig {
 
     private AuthEntryPointJwt unauthorizedHandler;
 
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private String allowedOrigins;
+
     public WebSecurityConfig(CustomUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
@@ -61,7 +64,7 @@ public class WebSecurityConfig {
                         // 2. Lejo leximin e bizneseve, shërbimeve dhe orareve për të gjithë (Public)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/businesses/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/offerings/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/availabilties/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/availabilities/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/schedules/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/**").permitAll()
 
@@ -76,7 +79,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Your React Port
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(","))); // Configurable CORS origins
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

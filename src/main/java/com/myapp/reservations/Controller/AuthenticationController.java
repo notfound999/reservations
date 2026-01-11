@@ -1,6 +1,6 @@
 package com.myapp.reservations.Controller;
 
-import com.myapp.reservations.DTO.AuthResponse;
+import com.myapp.reservations.DTO.UserDTOs.AuthResponse;
 import com.myapp.reservations.DTO.SignInRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserResponse;
@@ -61,14 +61,15 @@ public class AuthenticationController {
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = jwtUtils.generateToken(userDetails.getUsername());
 
         // Get the full user details to return in response
-
         User authenticatedUser = userRepository.findByName(userDetails.getUsername());
-        if(authenticatedUser==(null)){
+        if(authenticatedUser == null){
             throw new RuntimeException("User not found");
         }
+
+        // Generate token with userId included
+        String token = jwtUtils.generateToken(userDetails.getUsername(), authenticatedUser.getId());
         UserResponse userResponse = userService.findById(authenticatedUser.getId());
 
         return new AuthResponse(token, userResponse);
@@ -78,12 +79,11 @@ public class AuthenticationController {
     public AuthResponse registerUser(@RequestBody UserRequest user) {
         if (userRepository.existsByName(user.name())||userRepository.existsByEmail(user.email())) {
             throw new IllegalArgumentException("User with this email already exists");
-
         }
         UserResponse newUser = userService.createUser(user);
 
-        // Generate token for the newly created user
-        String token = jwtUtils.generateToken(user.name());
+        // Generate token with userId included
+        String token = jwtUtils.generateToken(user.name(), java.util.UUID.fromString(newUser.id().toString()));
 
         return new AuthResponse(token, newUser);
     }

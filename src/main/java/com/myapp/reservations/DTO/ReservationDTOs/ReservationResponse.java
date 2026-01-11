@@ -8,8 +8,9 @@ import java.util.UUID;
 public record ReservationResponse(
         UUID id,
         UUID businessId,
+        String businessName,
         UUID offeringId,
-        String offeringName, // e.g., "Main Office" or "Haircut"
+        String offeringName,
         UUID userId,
         String userName,
 

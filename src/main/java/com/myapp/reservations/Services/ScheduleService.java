@@ -68,6 +68,8 @@ public class ScheduleService {
 
         settings.setWorkingDays(days);
 
+        // CRITICAL: Link the ScheduleSettings to the Business for cascade persistence
+        business.setScheduleSettings(settings);
     }
 
     @Transactional

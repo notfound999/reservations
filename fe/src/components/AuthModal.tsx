@@ -51,7 +51,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   const signInForm = useForm<SignInForm>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { identifier: 'Vendosni emrin ose email', password: '' },
+    defaultValues: { identifier: '', password: '' },
   });
 
   const signUpForm = useForm<SignUpForm>({

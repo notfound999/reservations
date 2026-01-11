@@ -24,19 +24,20 @@ public class ReservationService {
     private final OfferingRepository offeringRepository;
     private final TimeOffRepository timeOffRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public ReservationService(BusinessRepository businessRepository , ReservationRepository reservationRepository , ScheduleSettingsRepository scheduleSettingsRepository,OfferingRepository offeringRepository,UserRepository userRepository,TimeOffRepository timeOffRepository) {
+    public ReservationService(BusinessRepository businessRepository , ReservationRepository reservationRepository , ScheduleSettingsRepository scheduleSettingsRepository,OfferingRepository offeringRepository,UserRepository userRepository,TimeOffRepository timeOffRepository, UserService userService) {
         this.businessRepository = businessRepository;
         this.reservationRepository=reservationRepository;
         this.scheduleSettingsRepository = scheduleSettingsRepository;
         this.offeringRepository = offeringRepository;
         this.timeOffRepository= timeOffRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
-    private void validateWorkingHours(ReservationRequest request, ScheduleSettings settings) {
-        LocalDateTime start = request.startDateTime();
-        DayOfWeek dayOfWeek = start.getDayOfWeek();
+    private void validateWorkingHours(LocalDateTime startDateTime, LocalDateTime endDateTime, ScheduleSettings settings) {
+        DayOfWeek dayOfWeek = startDateTime.getDayOfWeek();
 
         // 1. Get the rules for this specific day
         WorkingDay config = settings.getWorkingDays().stream()
@@ -50,8 +51,8 @@ public class ReservationService {
         }
 
         // 3. Check if start and end times fall within open hours
-        LocalTime requestStart = start.toLocalTime();
-        LocalTime requestEnd = request.endDateTime().toLocalTime();
+        LocalTime requestStart = startDateTime.toLocalTime();
+        LocalTime requestEnd = endDateTime.toLocalTime();
 
         if (requestStart.isBefore(config.getStartTime()) || requestEnd.isAfter(config.getEndTime())) {
             throw new RuntimeException("Selected time is outside of business working hours");
@@ -70,36 +71,42 @@ public class ReservationService {
             throw new RuntimeException("Request is empty");
         }
 
+        // Get the offering first to calculate end time
+        Offering offering = offeringRepository.findById(reservationRequest.offeringId())
+                .orElseThrow(() -> new RuntimeException("Service Offering Not Found"));
+
+        LocalDateTime startDateTime = reservationRequest.startTime();
+        LocalDateTime endDateTime = startDateTime.plusMinutes(offering.getDurationMinutes());
+
         ScheduleSettings schedule = scheduleSettingsRepository.getScheduleSettingsByBusinessId(reservationRequest.businessId())
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
 
-        validateWorkingHours(reservationRequest,schedule);
+        validateWorkingHours(startDateTime, endDateTime, schedule);
 
-        validateAdvanceBookingRequirements(reservationRequest.startDateTime(),schedule);
+        validateAdvanceBookingRequirements(startDateTime, schedule);
 
         Business business = businessRepository.getBusinessById(reservationRequest.businessId()).orElseThrow(()-> new RuntimeException("Business not found"));
 
-        if (reservationRepository.existsOverlap(business.getId(), reservationRequest.startDateTime(), reservationRequest.endDateTime())) {
+        if (reservationRepository.existsOverlap(business.getId(), startDateTime, endDateTime)) {
             throw new RuntimeException("This time slot is already reserved by another customer.");
         }
 
-        if (timeOffRepository.hasTimeOffConflict(business.getId(), reservationRequest.startDateTime(), reservationRequest.endDateTime())) {
+        if (timeOffRepository.hasTimeOffConflict(business.getId(), startDateTime, endDateTime)) {
             throw new RuntimeException("The business is unavailable during this time (Maintenance/Time Off).");
         }
 
         Reservation reservation =  new Reservation();
         reservation.setBusiness(business);
-
-        Offering offering = offeringRepository.findById(reservationRequest.serviceId())
-                .orElseThrow(() -> new RuntimeException("Service Offering Not Found"));
         reservation.setOffering(offering);
 
-        User user = userRepository.findById(reservationRequest.userId())
+        // Get user from authenticated context
+        UUID currentUserId = userService.getCurrentUserId();
+        User user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
         reservation.setUser(user);
 
-        reservation.setStartDateTime(reservationRequest.startDateTime());
-        reservation.setEndDateTime(reservationRequest.endDateTime());
+        reservation.setStartDateTime(startDateTime);
+        reservation.setEndDateTime(endDateTime);
 
         if (schedule.getAutoConfirmAppointments()==true) {
             reservation.setStatus(ReservationStatus.CONFIRMED);
@@ -146,7 +153,6 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found with ID: " + reservationId));
 
-        // 2. Business Logic: Don't cancel if it's already cancelled
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new RuntimeException("Reservation is already cancelled.");
         }
@@ -157,5 +163,16 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
+    public java.util.List<ReservationResponse> getMyReservations(UUID userId) {
+        return reservationRepository.findByUserId(userId).stream()
+                .map(ReservationMapper::toResponse)
+                .toList();
+    }
+
+    public java.util.List<ReservationResponse> getReservationsByBusiness(UUID businessId) {
+        return reservationRepository.findByBusinessId(businessId).stream()
+                .map(ReservationMapper::toResponse)
+                .toList();
+    }
 
 }

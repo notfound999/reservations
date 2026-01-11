@@ -8,10 +8,9 @@ import java.util.UUID;
 
 public record ReservationRequest(
         @NotNull UUID businessId,
-        @NotNull UUID serviceId,
-        @NotNull UUID userId,
-        @NotNull LocalDateTime startDateTime,
-        @NotNull LocalDateTime endDateTime
+        @NotNull UUID offeringId,
+        @NotNull LocalDateTime startTime,
+        String notes
 
 ) {
 }

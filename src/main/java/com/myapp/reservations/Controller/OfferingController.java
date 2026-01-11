@@ -29,7 +29,7 @@ public class OfferingController {
         return offeringService.getOfferingById(offeringId);
     }
 
-    @GetMapping("/{businessId}")
+    @GetMapping("/business/{businessId}")
     public List<OfferingResponse> getBusinessOfferings(@PathVariable UUID businessId){
         return offeringService.getBusinessOfferings(businessId);
     }

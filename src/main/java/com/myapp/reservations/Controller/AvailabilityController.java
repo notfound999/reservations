@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/availabilties")
+@RequestMapping("/api/availabilities")
 public class AvailabilityController {
 
     private final AvailabilityService availabilityService;
@@ -19,6 +19,7 @@ public class AvailabilityController {
         this.availabilityService=availabilityService;
     }
 
+    @GetMapping("/busy-blocks/{businessId}")
     public  List<BusyBlockResponse> getBusyBlocks(@PathVariable UUID businessId,
                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {

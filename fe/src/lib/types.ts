@@ -65,29 +65,46 @@ export interface Offering {
 }
 
 // ===== Schedule DTOs =====
+export type ReservationType = 'SLOT' | 'RANGE';
+export type ChronoUnit = 'MINUTES' | 'HOURS' | 'DAYS';
+
 export interface WorkingDayRequest {
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  dayOfWeek: string; // "MONDAY", "TUESDAY", etc.
   startTime: string; // "HH:mm" format
   endTime: string;   // "HH:mm" format
+  breakStartTime?: string;
+  breakEndTime?: string;
   isDayOff: boolean;
 }
 
 export interface ScheduleSettingsRequest {
-  businessId: string;
+  reservationType?: ReservationType;
+  slotDurationValue?: number;
+  slotDurationUnit?: ChronoUnit;
+  minAdvanceBookingHours?: number;
+  maxAdvanceBookingDays?: number;
+  autoConfirmAppointments?: boolean;
   workingDays: WorkingDayRequest[];
 }
 
 export interface WorkingDay {
   id: string;
-  dayOfWeek: number;
+  dayOfWeek: string;
   startTime: string;
   endTime: string;
+  breakStartTime?: string;
+  breakEndTime?: string;
   isDayOff: boolean;
 }
 
 export interface ScheduleSettings {
   id: string;
-  businessId: string;
+  reservationType: ReservationType;
+  slotDurationValue: number;
+  slotDurationUnit: ChronoUnit;
+  minAdvanceBookingHours: number;
+  maxAdvanceBookingDays: number;
+  autoConfirmAppointments: boolean;
   workingDays: WorkingDay[];
 }
 
@@ -111,12 +128,14 @@ export interface ReservationRequest {
 export interface Reservation {
   id: string;
   businessId: string;
+  businessName: string;
   offeringId: string;
+  offeringName: string;
   userId: string;
-  startTime: string;
-  endTime: string;
+  userName: string;
+  startDateTime: string;
+  endDateTime: string;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-  notes?: string;
   createdAt: string;
 }
 

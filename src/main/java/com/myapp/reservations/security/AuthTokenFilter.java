@@ -15,14 +15,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @Slf4j
-class AuthTokenFilter extends OncePerRequestFilter {
+public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
     public static final String BEARER_ = "Bearer ";
+    public static final String USER_ID_ATTRIBUTE = "currentUserId";
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
@@ -34,14 +36,22 @@ class AuthTokenFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-
-
         try {
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtil.validateToken(jwt)) {
-                final String username = jwtUtil.getUserFromToken(jwt);
-                final UserDetails userDetails =
-                        customUserDetailsService.loadUserByUsername(username);
+                final UUID userId = jwtUtil.getUserIdFromToken(jwt);
+                final UserDetails userDetails;
+
+                // Prefer loading by userId (more stable) over username (can change)
+                if (userId != null) {
+                    userDetails = customUserDetailsService.loadUserById(userId);
+                    request.setAttribute(USER_ID_ATTRIBUTE, userId);
+                } else {
+                    // Fallback for old tokens without userId
+                    final String username = jwtUtil.getUserFromToken(jwt);
+                    userDetails = customUserDetailsService.loadUserByUsername(username);
+                }
+
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -55,7 +65,7 @@ class AuthTokenFilter extends OncePerRequestFilter {
             log.error("Cannot set user authentication: {}", e.getMessage());
         }
 
-        filterChain.doFilter(request, response); // continue to next filter
+        filterChain.doFilter(request, response);
     }
 
     private String parseJwt(HttpServletRequest request) {

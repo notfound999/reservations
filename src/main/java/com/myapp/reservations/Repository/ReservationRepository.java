@@ -21,4 +21,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             "AND :start < r.endDateTime AND :end > r.startDateTime")
     boolean existsOverlap(UUID businessId, LocalDateTime start, LocalDateTime end);
 
+    List<Reservation> findByUserId(UUID userId);
+
+    List<Reservation> findByBusinessId(UUID businessId);
+
 }

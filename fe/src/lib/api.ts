@@ -13,6 +13,7 @@ import type {
   ReservationRequest,
   Reservation,
   Review,
+  User,
 } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -64,6 +65,18 @@ export const authApi = {
   },
 };
 
+// ===== User API =====
+export const userApi = {
+  getProfile: async (): Promise<User> => {
+    const response = await api.get('/me');
+    return response.data;
+  },
+
+  updateProfile: async (data: { name: string; email: string; phone?: string; password?: string }): Promise<void> => {
+    await api.put('/me', data);
+  },
+};
+
 // ===== Business API =====
 export const businessApi = {
   getAll: async (): Promise<Business[]> => {
@@ -82,7 +95,7 @@ export const businessApi = {
   },
 
   update: async (id: string, data: BusinessRequest): Promise<Business> => {
-    const response = await api.put(`/businesses/${id}`, data);
+    const response = await api.put(`/businesses/update/${id}`, data);
     return response.data;
   },
 
@@ -95,7 +108,7 @@ export const businessApi = {
 // ===== Offerings API =====
 export const offeringsApi = {
   getByBusiness: async (businessId: string): Promise<Offering[]> => {
-    const response = await api.get(`/businesses/by-business-id/${businessId}`);
+    const response = await api.get(`/offerings/business/${businessId}`);
     return response.data;
   },
 
@@ -105,7 +118,7 @@ export const offeringsApi = {
   },
 
   update: async (id: string, data: OfferingRequest): Promise<Offering> => {
-    const response = await api.put(`/offerings/${id}`, data);
+    const response = await api.put(`/offerings/update/${id}`, data);
     return response.data;
   },
 
@@ -117,12 +130,12 @@ export const offeringsApi = {
 // ===== Schedule API =====
 export const scheduleApi = {
   getSettings: async (businessId: string): Promise<ScheduleSettings> => {
-    const response = await api.get(`/schedules/${businessId}`);
+    const response = await api.get(`/schedules/business/${businessId}`);
     return response.data;
   },
 
-  updateSettings: async (data: ScheduleSettingsRequest): Promise<ScheduleSettings> => {
-    const response = await api.put('/schedules/settings', data);
+  updateSettings: async (businessId: string, data: ScheduleSettingsRequest): Promise<ScheduleSettings> => {
+    const response = await api.put(`/schedules/business/${businessId}`, data);
     return response.data;
   },
 
@@ -131,8 +144,8 @@ export const scheduleApi = {
     viewStart: string,
     viewEnd: string
   ): Promise<BusyBlock[]> => {
-    const response = await api.get('/schedules/busy-blocks', {
-      params: { businessId, viewStart, viewEnd },
+    const response = await api.get(`/availabilities/busy-blocks/${businessId}`, {
+      params: { start: viewStart, end: viewEnd },
     });
     return response.data;
   },
@@ -155,9 +168,8 @@ export const reservationsApi = {
     return response.data;
   },
 
-  cancel: async (id: string): Promise<Reservation> => {
-    const response = await api.put(`/reservations/${id}/cancel`);
-    return response.data;
+  cancel: async (id: string): Promise<void> => {
+    await api.patch(`/reservations/${id}/cancel`);
   },
 };
 
