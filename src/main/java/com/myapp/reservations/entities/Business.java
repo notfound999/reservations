@@ -39,6 +39,16 @@ public class Business {
     @Column(name = "b_phone")
     private String phone;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "business_type")
+    private BusinessType businessType;
+
+    @Column(name = "custom_type")
+    private String customType; // Used when businessType is OTHER
+
+    @Column(name = "image_path")
+    private String imagePath;
+
     @ManyToOne
     @JoinColumn(name = "b_owner_id", nullable = false)
     private User owner;
@@ -58,6 +68,10 @@ public class Business {
 
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Offering> offerings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC, createdAt DESC")
+    private List<BusinessPhoto> photos = new ArrayList<>();
 
     @PrePersist
     public void onCreate(){

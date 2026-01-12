@@ -50,6 +50,9 @@ public class User {
     )
     private List<Business> adminOfBusinesses = new ArrayList<>();
 
+    @Column(name = "avatar_path")
+    private String avatarPath;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

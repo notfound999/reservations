@@ -5,6 +5,7 @@ import type {
   AuthResponse,
   BusinessRequest,
   Business,
+  BusinessPhoto,
   OfferingRequest,
   Offering,
   ScheduleSettingsRequest,
@@ -14,6 +15,8 @@ import type {
   Reservation,
   Review,
   User,
+  TimeOffRequest,
+  TimeOff,
 } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -182,6 +185,80 @@ export const reviewsApi = {
 
   create: async (businessId: string, rating: number, comment: string): Promise<Review> => {
     const response = await api.post(`/reviews/${businessId}`, { rating, comment });
+    return response.data;
+  },
+};
+
+// ===== Time Off API =====
+export const timeOffApi = {
+  getByBusiness: async (businessId: string): Promise<TimeOff[]> => {
+    const response = await api.get(`/time-off/business/${businessId}`);
+    return response.data;
+  },
+
+  create: async (businessId: string, data: TimeOffRequest): Promise<void> => {
+    await api.post(`/time-off/business/${businessId}`, data);
+  },
+
+  delete: async (timeOffId: string): Promise<void> => {
+    await api.delete(`/time-off/${timeOffId}`);
+  },
+};
+
+// ===== File Upload API =====
+export const fileApi = {
+  uploadUserAvatar: async (file: File): Promise<{ path: string; url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/files/user-avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  deleteUserAvatar: async (): Promise<void> => {
+    await api.delete('/files/user-avatar');
+  },
+
+  uploadBusinessImage: async (businessId: string, file: File): Promise<{ path: string; url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/files/business-image/${businessId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  deleteBusinessImage: async (businessId: string): Promise<void> => {
+    await api.delete(`/files/business-image/${businessId}`);
+  },
+};
+
+// ===== Business Gallery API =====
+export const galleryApi = {
+  getPhotos: async (businessId: string): Promise<BusinessPhoto[]> => {
+    const response = await api.get(`/files/business-photos/${businessId}`);
+    return response.data;
+  },
+
+  uploadPhoto: async (businessId: string, file: File, caption?: string): Promise<BusinessPhoto> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (caption) {
+      formData.append('caption', caption);
+    }
+    const response = await api.post(`/files/business-photos/${businessId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  deletePhoto: async (photoId: string): Promise<void> => {
+    await api.delete(`/files/business-photos/${photoId}`);
+  },
+
+  updateCaption: async (photoId: string, caption: string): Promise<BusinessPhoto> => {
+    const response = await api.patch(`/files/business-photos/${photoId}/caption`, { caption });
     return response.data;
   },
 };

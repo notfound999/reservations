@@ -10,13 +10,19 @@ interface BusinessCardProps {
 }
 
 const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
+  const imageUrl = business.imageUrl
+    ? business.imageUrl.startsWith('http')
+      ? business.imageUrl
+      : `http://localhost:8080${business.imageUrl}`
+    : 'https://images.unsplash.com/photo-1560472355-536de3962603?w=600&h=400&fit=crop';
+
   return (
     <Link to={`/business/${business.id}`}>
       <Card className="group overflow-hidden cursor-pointer h-full">
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
-            src={business.imageUrl || 'https://images.unsplash.com/photo-1560472355-536de3962603?w=600&h=400&fit=crop'}
+            src={imageUrl}
             alt={business.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

@@ -10,7 +10,17 @@ public class UserMapper {
         if(user==null){
             return null;
         }
-        return new UserResponse(user.getId(),user.getName(),user.getEmail(),user.getPhone(),user.getRoles());
+        String avatarUrl = user.getAvatarPath() != null
+                ? "/uploads/" + user.getAvatarPath()
+                : null;
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRoles(),
+                avatarUrl
+        );
     }
 
     public static User toUser(UserRequest request) {

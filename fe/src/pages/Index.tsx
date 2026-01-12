@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,15 +7,36 @@ import BusinessCard from '@/components/BusinessCard';
 import { businessApi, offeringsApi } from '@/lib/api';
 import type { Business } from '@/lib/types';
 
-const categories = ['All', 'Spa & Wellness', 'Barbershop', 'Beauty Salon', 'Fitness', 'Yoga & Meditation', 'Pet Services'];
+const categories = ['All', 'Spa & Wellness', 'Barbershop', 'Beauty Salon', 'Fitness', 'Yoga & Meditation', 'Pet Services', 'Other'];
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [lowestPrices, setLowestPrices] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync search query with URL params
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    if (searchFromUrl !== searchQuery) {
+      setSearchQuery(searchFromUrl);
+    }
+  }, [searchParams]);
+
+  // Update URL when search changes (debounced effect)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        setSearchParams({ search: searchQuery });
+      } else {
+        setSearchParams({});
+      }
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, setSearchParams]);
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -52,13 +74,16 @@ const Index = () => {
 
   const filteredBusinesses = useMemo(() => {
     return businesses.filter((business) => {
-      const matchesSearch = 
-        business.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        business.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        business.category?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+      // Search filter - if empty, match all
+      const searchLower = searchQuery.toLowerCase().trim();
+      const matchesSearch = searchLower === '' ||
+        business.name.toLowerCase().includes(searchLower) ||
+        business.description.toLowerCase().includes(searchLower) ||
+        (business.category?.toLowerCase().includes(searchLower) ?? false);
+
+      // Category filter
       const matchesCategory = selectedCategory === 'All' || business.category === selectedCategory;
-      
+
       return matchesSearch && matchesCategory;
     });
   }, [businesses, searchQuery, selectedCategory]);

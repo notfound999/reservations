@@ -8,6 +8,7 @@ public record UserResponse(
         String name,
         String email,
         String phone,
-        Set<String> roles
+        Set<String> roles,
+        String avatarUrl
 ) {}
 

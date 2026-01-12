@@ -94,6 +94,8 @@ public class BusinessService {
         if (request.description() != null) existing.setDescription(request.description());
         if (request.address() != null) existing.setAddress(request.address());
         if (request.phone() != null) existing.setPhone(request.phone());
+        if (request.businessType() != null) existing.setBusinessType(request.businessType());
+        existing.setCustomType(request.customType()); // Can be null
 
         Business saved = businessRepository.save(existing);
         return BusinessMapper.toResponse(saved);
@@ -119,5 +121,33 @@ public class BusinessService {
     public List<UserResponse> getAllAdmins(UUID businessId){
         Business business = businessRepository.getBusinessById(businessId).orElseThrow(() -> new RuntimeException("business not found"));
         return business.getAdmins().stream().map(UserMapper::toResponse).toList();
+    }
+
+    public boolean isOwnerOrAdmin(UUID businessId, UUID userId) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new RuntimeException("Business not found"));
+
+        // Check if user is owner
+        if (business.getOwner().getId().equals(userId)) {
+            return true;
+        }
+
+        // Check if user is admin
+        return business.getAdmins().stream()
+                .anyMatch(admin -> admin.getId().equals(userId));
+    }
+
+    @Transactional
+    public void updateImage(UUID businessId, String imagePath) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new RuntimeException("Business not found"));
+        business.setImagePath(imagePath);
+        businessRepository.save(business);
+    }
+
+    public String getImagePath(UUID businessId) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new RuntimeException("Business not found"));
+        return business.getImagePath();
     }
 }

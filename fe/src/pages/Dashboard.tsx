@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { parseISO, startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes } from 'date-fns';
 import {
   Building2, Plus, Clock, DollarSign,
-  Calendar, Settings, List, Loader2, Trash2, ChevronDown, Save
+  Calendar, Settings, List, Loader2, Trash2, ChevronDown, Save, CalendarDays,
+  Camera, Image, X, Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,14 +32,28 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { businessApi, offeringsApi, scheduleApi } from '@/lib/api';
-import type { Business, Offering, ScheduleSettings, WorkingDayRequest } from '@/lib/types';
+import { businessApi, offeringsApi, scheduleApi, reservationsApi, timeOffApi, fileApi, galleryApi } from '@/lib/api';
+import type { Business, Offering, ScheduleSettings, WorkingDayRequest, Reservation, TimeOff, CalendarEvent, BusinessType, BusinessPhoto } from '@/lib/types';
+import BusinessCalendar from '@/components/BusinessCalendar';
+import TimeOffModal from '@/components/TimeOffModal';
 
 const businessSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   address: z.string().min(5, 'Address is required'),
   phone: z.string().min(10, 'Phone number is required'),
+  businessType: z.enum(['SPA_WELLNESS', 'BARBERSHOP', 'BEAUTY_SALON', 'FITNESS', 'YOGA_MEDITATION', 'PET_SERVICES', 'OTHER'], {
+    required_error: 'Business type is required',
+  }),
+  customType: z.string().optional(),
+}).refine((data) => {
+  if (data.businessType === 'OTHER') {
+    return data.customType && data.customType.length >= 2;
+  }
+  return true;
+}, {
+  message: 'Custom type is required when selecting Other (at least 2 characters)',
+  path: ['customType'],
 });
 
 const offeringSchema = z.object({
@@ -94,9 +110,20 @@ const Dashboard = () => {
     phone: '',
   });
 
+  // Calendar data state
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [timeOffs, setTimeOffs] = useState<TimeOff[]>([]);
+  const [isTimeOffModalOpen, setIsTimeOffModalOpen] = useState(false);
+
+  // Business image and gallery state
+  const [businessImageUrl, setBusinessImageUrl] = useState<string | null>(null);
+  const [galleryPhotos, setGalleryPhotos] = useState<BusinessPhoto[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
   const businessForm = useForm<BusinessFormData>({
     resolver: zodResolver(businessSchema),
-    defaultValues: { name: '', description: '', address: '', phone: '' },
+    defaultValues: { name: '', description: '', address: '', phone: '', businessType: undefined, customType: '' },
   });
 
   const offeringForm = useForm<OfferingFormData>({
@@ -126,23 +153,44 @@ const Dashboard = () => {
     }
   }, [isAuthenticated]);
 
-  // Fetch offerings and schedule when selected business changes
+  // Fetch offerings, schedule, reservations, and time-offs when selected business changes
   useEffect(() => {
     const fetchBusinessData = async () => {
       if (!selectedBusiness) {
         setOfferings([]);
         setScheduleSettings(null);
+        setReservations([]);
+        setTimeOffs([]);
+        setBusinessImageUrl(null);
+        setGalleryPhotos([]);
         return;
       }
 
       try {
-        const [offeringsData, scheduleData] = await Promise.all([
+        const [offeringsData, scheduleData, reservationsData, timeOffsData, photosData] = await Promise.all([
           offeringsApi.getByBusiness(selectedBusiness.id),
           scheduleApi.getSettings(selectedBusiness.id).catch(() => null),
+          reservationsApi.getByBusiness(selectedBusiness.id).catch(() => []),
+          timeOffApi.getByBusiness(selectedBusiness.id).catch(() => []),
+          galleryApi.getPhotos(selectedBusiness.id).catch(() => []),
         ]);
 
         setOfferings(offeringsData);
         setScheduleSettings(scheduleData);
+        setReservations(reservationsData);
+        setTimeOffs(timeOffsData);
+        setGalleryPhotos(photosData);
+
+        // Set business image URL
+        if (selectedBusiness.imageUrl) {
+          setBusinessImageUrl(
+            selectedBusiness.imageUrl.startsWith('http')
+              ? selectedBusiness.imageUrl
+              : `http://localhost:8080${selectedBusiness.imageUrl}`
+          );
+        } else {
+          setBusinessImageUrl(null);
+        }
 
         // Initialize working days form
         if (scheduleData?.workingDays) {
@@ -195,6 +243,8 @@ const Dashboard = () => {
         description: data.description,
         address: data.address,
         phone: data.phone,
+        businessType: data.businessType,
+        customType: data.businessType === 'OTHER' ? data.customType : undefined,
       });
       setBusinesses(prev => [...prev, newBusiness]);
       setSelectedBusiness(newBusiness);
@@ -276,10 +326,205 @@ const Dashboard = () => {
     }
   };
 
+  // Business image handlers
+  const handleBusinessImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedBusiness) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: 'Invalid file', description: 'Please upload a JPG, PNG, GIF, or WebP image', variant: 'destructive' });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'File too large', description: 'Image must be less than 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const result = await fileApi.uploadBusinessImage(selectedBusiness.id, file);
+      setBusinessImageUrl(`http://localhost:8080${result.url}`);
+      // Update the business in state
+      setSelectedBusiness(prev => prev ? { ...prev, imageUrl: result.url } : null);
+      setBusinesses(prev => prev.map(b => b.id === selectedBusiness.id ? { ...b, imageUrl: result.url } : b));
+      toast({ title: 'Image uploaded', description: 'Your business profile picture has been updated.' });
+    } catch (error) {
+      toast({ title: 'Upload failed', description: 'Could not upload image', variant: 'destructive' });
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleBusinessImageDelete = async () => {
+    if (!selectedBusiness || !businessImageUrl) return;
+
+    setIsUploadingImage(true);
+    try {
+      await fileApi.deleteBusinessImage(selectedBusiness.id);
+      setBusinessImageUrl(null);
+      setSelectedBusiness(prev => prev ? { ...prev, imageUrl: undefined } : null);
+      setBusinesses(prev => prev.map(b => b.id === selectedBusiness.id ? { ...b, imageUrl: undefined } : b));
+      toast({ title: 'Image removed', description: 'Your business profile picture has been removed.' });
+    } catch (error) {
+      toast({ title: 'Delete failed', description: 'Could not remove image', variant: 'destructive' });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // Gallery handlers
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedBusiness) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    setIsUploadingGallery(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (!allowedTypes.includes(file.type)) {
+          toast({ title: 'Skipped file', description: `${file.name} is not a valid image`, variant: 'destructive' });
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast({ title: 'Skipped file', description: `${file.name} is too large (max 5MB)`, variant: 'destructive' });
+          continue;
+        }
+
+        const photo = await galleryApi.uploadPhoto(selectedBusiness.id, file);
+        setGalleryPhotos(prev => [...prev, photo]);
+      }
+      toast({ title: 'Photos uploaded', description: 'Gallery photos have been added.' });
+    } catch (error: any) {
+      toast({ title: 'Upload failed', description: error.response?.data?.error || 'Could not upload photos', variant: 'destructive' });
+    } finally {
+      setIsUploadingGallery(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleGalleryPhotoDelete = async (photoId: string) => {
+    try {
+      await galleryApi.deletePhoto(photoId);
+      setGalleryPhotos(prev => prev.filter(p => p.id !== photoId));
+      toast({ title: 'Photo deleted', description: 'Gallery photo has been removed.' });
+    } catch (error) {
+      toast({ title: 'Delete failed', description: 'Could not delete photo', variant: 'destructive' });
+    }
+  };
+
   const updateWorkingDay = (index: number, field: keyof WorkingDayRequest, value: string | boolean) => {
     setWorkingDays(prev => prev.map((day, i) =>
       i === index ? { ...day, [field]: value } : day
     ));
+  };
+
+  // Convert reservations and time-offs to calendar events
+  const calendarEvents = useMemo((): CalendarEvent[] => {
+    const events: CalendarEvent[] = [];
+
+    // Add reservations (exclude cancelled)
+    reservations
+      .filter(r => r.status !== 'CANCELLED')
+      .forEach(reservation => {
+        events.push({
+          id: reservation.id,
+          title: reservation.offeringName,
+          start: parseISO(reservation.startDateTime),
+          end: parseISO(reservation.endDateTime),
+          type: 'reservation',
+          customerName: reservation.userName,
+          serviceName: reservation.offeringName,
+          status: reservation.status,
+        });
+      });
+
+    // Add time-offs
+    timeOffs.forEach(timeOff => {
+      events.push({
+        id: timeOff.id,
+        title: timeOff.reason || 'Time Off',
+        start: parseISO(timeOff.startDateTime),
+        end: parseISO(timeOff.endDateTime),
+        type: 'timeoff',
+        reason: timeOff.reason,
+      });
+    });
+
+    return events;
+  }, [reservations, timeOffs]);
+
+  // Calculate weekly stats
+  const weeklyStats = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
+
+    // Filter reservations for this week (confirmed or pending, not cancelled)
+    const thisWeekReservations = reservations.filter(r => {
+      if (r.status === 'CANCELLED') return false;
+      const startDate = parseISO(r.startDateTime);
+      return isWithinInterval(startDate, { start: weekStart, end: weekEnd });
+    });
+
+    // Calculate total bookings
+    const bookingsCount = thisWeekReservations.length;
+
+    // Calculate total revenue (need to match offering prices)
+    let totalRevenue = 0;
+    let totalMinutes = 0;
+
+    thisWeekReservations.forEach(reservation => {
+      // Find the offering to get the price
+      const offering = offerings.find(o => o.id === reservation.offeringId);
+      if (offering) {
+        totalRevenue += offering.price;
+      }
+
+      // Calculate duration
+      const start = parseISO(reservation.startDateTime);
+      const end = parseISO(reservation.endDateTime);
+      totalMinutes += differenceInMinutes(end, start);
+    });
+
+    const totalHours = Math.round(totalMinutes / 60 * 10) / 10; // Round to 1 decimal
+
+    return {
+      bookingsCount,
+      totalRevenue,
+      totalHours,
+    };
+  }, [reservations, offerings]);
+
+  const handleAddTimeOff = async (data: {
+    startDateTime: string;
+    endDateTime: string;
+    reason?: string;
+  }) => {
+    if (!selectedBusiness) return;
+
+    await timeOffApi.create(selectedBusiness.id, data);
+    // Refresh time-offs
+    const updatedTimeOffs = await timeOffApi.getByBusiness(selectedBusiness.id);
+    setTimeOffs(updatedTimeOffs);
+    toast({ title: 'Time off added!', description: 'Your schedule has been updated.' });
+  };
+
+  const handleDeleteTimeOff = async (timeOffId: string) => {
+    if (!selectedBusiness) return;
+
+    try {
+      await timeOffApi.delete(timeOffId);
+      setTimeOffs(prev => prev.filter(t => t.id !== timeOffId));
+      toast({ title: 'Time off removed', description: 'The time off has been deleted.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Could not delete time off', variant: 'destructive' });
+    }
   };
 
   if (isFetching) {
@@ -361,6 +606,43 @@ const Dashboard = () => {
                       <p className="text-sm text-destructive">{businessForm.formState.errors.phone.message}</p>
                     )}
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="businessType">Business Type</Label>
+                    <Select
+                      onValueChange={(value) => businessForm.setValue('businessType', value as BusinessType)}
+                      value={businessForm.watch('businessType')}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Select business type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SPA_WELLNESS">Spa & Wellness</SelectItem>
+                        <SelectItem value="BARBERSHOP">Barbershop</SelectItem>
+                        <SelectItem value="BEAUTY_SALON">Beauty Salon</SelectItem>
+                        <SelectItem value="FITNESS">Fitness</SelectItem>
+                        <SelectItem value="YOGA_MEDITATION">Yoga & Meditation</SelectItem>
+                        <SelectItem value="PET_SERVICES">Pet Services</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {businessForm.formState.errors.businessType && (
+                      <p className="text-sm text-destructive">{businessForm.formState.errors.businessType.message}</p>
+                    )}
+                  </div>
+                  {businessForm.watch('businessType') === 'OTHER' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="customType">Custom Type</Label>
+                      <Input
+                        id="customType"
+                        {...businessForm.register('customType')}
+                        className="h-11"
+                        placeholder="Enter your business type"
+                      />
+                      {businessForm.formState.errors.customType && (
+                        <p className="text-sm text-destructive">{businessForm.formState.errors.customType.message}</p>
+                      )}
+                    </div>
+                  )}
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Business
@@ -390,8 +672,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         ) : (
-          <Tabs defaultValue="overview" className="space-y-6">
+          <Tabs defaultValue="calendar" className="space-y-6">
             <TabsList className="bg-secondary/50">
+              <TabsTrigger value="calendar" className="gap-2">
+                <CalendarDays className="h-4 w-4" />
+                My Schedule
+              </TabsTrigger>
               <TabsTrigger value="overview" className="gap-2">
                 <Building2 className="h-4 w-4" />
                 Overview
@@ -402,13 +688,28 @@ const Dashboard = () => {
               </TabsTrigger>
               <TabsTrigger value="schedule" className="gap-2">
                 <Calendar className="h-4 w-4" />
-                Schedule
+                Working Hours
               </TabsTrigger>
               <TabsTrigger value="settings" className="gap-2">
                 <Settings className="h-4 w-4" />
                 Settings
               </TabsTrigger>
             </TabsList>
+
+            {/* Calendar/My Schedule Tab */}
+            <TabsContent value="calendar" className="space-y-6">
+              <BusinessCalendar
+                events={calendarEvents}
+                workingDays={scheduleSettings?.workingDays}
+                onAddTimeOff={() => setIsTimeOffModalOpen(true)}
+                onDeleteTimeOff={handleDeleteTimeOff}
+              />
+              <TimeOffModal
+                open={isTimeOffModalOpen}
+                onOpenChange={setIsTimeOffModalOpen}
+                onSubmit={handleAddTimeOff}
+              />
+            </TabsContent>
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
@@ -420,7 +721,7 @@ const Dashboard = () => {
                         <Calendar className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">-</p>
+                        <p className="text-2xl font-bold">{weeklyStats.bookingsCount}</p>
                         <p className="text-sm text-muted-foreground">Bookings this week</p>
                       </div>
                     </div>
@@ -429,11 +730,11 @@ const Dashboard = () => {
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-xl bg-available/10 flex items-center justify-center">
-                        <DollarSign className="h-6 w-6 text-available" />
+                      <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                        <DollarSign className="h-6 w-6 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">-</p>
+                        <p className="text-2xl font-bold">${weeklyStats.totalRevenue.toFixed(2)}</p>
                         <p className="text-sm text-muted-foreground">Revenue this week</p>
                       </div>
                     </div>
@@ -446,7 +747,7 @@ const Dashboard = () => {
                         <Clock className="h-6 w-6 text-accent-foreground" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">-</p>
+                        <p className="text-2xl font-bold">{weeklyStats.totalHours}h</p>
                         <p className="text-sm text-muted-foreground">Hours booked</p>
                       </div>
                     </div>
@@ -754,6 +1055,139 @@ const Dashboard = () => {
                     )}
                     Save Settings
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Business Profile Picture */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Profile Picture
+                  </CardTitle>
+                  <CardDescription>
+                    This image will be displayed on your business card and profile
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start gap-6">
+                    <div className="relative group">
+                      <div className="w-32 h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 overflow-hidden bg-muted/50 flex items-center justify-center">
+                        {businessImageUrl ? (
+                          <img
+                            src={businessImageUrl}
+                            alt="Business"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Building2 className="h-12 w-12 text-muted-foreground/50" />
+                        )}
+                      </div>
+                      {businessImageUrl && (
+                        <button
+                          onClick={handleBusinessImageDelete}
+                          disabled={isUploadingImage}
+                          className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Upload a profile picture for your business. Recommended size: 400x400 pixels.
+                      </p>
+                      <div>
+                        <input
+                          type="file"
+                          id="business-image-upload"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          className="hidden"
+                          onChange={handleBusinessImageUpload}
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => document.getElementById('business-image-upload')?.click()}
+                          disabled={isUploadingImage}
+                        >
+                          {isUploadingImage ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="mr-2 h-4 w-4" />
+                          )}
+                          {businessImageUrl ? 'Change Picture' : 'Upload Picture'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Photo Gallery */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Image className="h-5 w-5" />
+                    Photo Gallery
+                  </CardTitle>
+                  <CardDescription>
+                    Add photos of your work, ambient, or services (max 20 photos)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Gallery Grid */}
+                  {galleryPhotos.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      {galleryPhotos.map((photo) => (
+                        <div key={photo.id} className="relative group aspect-square">
+                          <img
+                            src={photo.url.startsWith('http') ? photo.url : `http://localhost:8080${photo.url}`}
+                            alt={photo.caption || 'Gallery photo'}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={() => handleGalleryPhotoDelete(photo.id)}
+                            className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          {photo.caption && (
+                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg">
+                              <p className="text-xs text-white truncate">{photo.caption}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload Area */}
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      id="gallery-upload"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={handleGalleryUpload}
+                    />
+                    <Image className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {galleryPhotos.length}/20 photos uploaded
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => document.getElementById('gallery-upload')?.click()}
+                      disabled={isUploadingGallery || galleryPhotos.length >= 20}
+                    >
+                      {isUploadingGallery ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="mr-2 h-4 w-4" />
+                      )}
+                      Add Photos
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

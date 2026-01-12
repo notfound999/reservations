@@ -163,9 +163,17 @@ public class UserService {
         return user.getId();
     }
 
+    @Transactional
+    public void updateAvatar(UUID userId, String avatarPath) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setAvatarPath(avatarPath);
+        userRepository.save(user);
+    }
 
-
-
-
-
+    public String getAvatarPath(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getAvatarPath();
+    }
 }

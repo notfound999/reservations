@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format, addDays, isSameDay, startOfDay, parse, addMinutes, isBefore, endOfDay } from 'date-fns';
+import { format, addDays, isSameDay, startOfDay, parse, addMinutes, isBefore, endOfDay, formatISO } from 'date-fns';
 import { Clock, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -41,15 +41,17 @@ const generateTimeSlots = (
   
   while (isBefore(current, dayEnd)) {
     const slotEnd = addMinutes(current, durationMinutes);
-    const slotDateTime = current.toISOString();
+    // Format as local datetime (no timezone) for backend LocalDateTime parsing
+    const slotDateTime = format(current, "yyyy-MM-dd'T'HH:mm:ss");
     
     // Check against busy blocks
     let status: SlotStatus = 'available';
     
     for (const block of busyBlocks) {
-      const blockStart = new Date(block.start);
-      const blockEnd = new Date(block.end);
-      
+      // Parse block times as local dates (backend sends LocalDateTime without timezone)
+      const blockStart = parse(block.start, "yyyy-MM-dd'T'HH:mm:ss", new Date());
+      const blockEnd = parse(block.end, "yyyy-MM-dd'T'HH:mm:ss", new Date());
+
       // Check if slot overlaps with block
       if (
         (current >= blockStart && current < blockEnd) ||
@@ -197,7 +199,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">
               {step === 'info' && 'Book Service'}
@@ -276,14 +278,14 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 sm:grid-cols-6 gap-2">
                     {timeSlots.map((slot) => (
                       <button
                         key={slot.time}
                         onClick={() => handleSlotSelect(slot)}
                         disabled={slot.status !== 'available'}
                         className={cn(
-                          "p-2.5 rounded-lg text-sm font-medium transition-all",
+                          "p-3 rounded-lg text-sm font-medium transition-all",
                           slot.status === 'available' && selectedSlot?.time === slot.time
                             ? "bg-primary text-primary-foreground shadow-warm"
                             : slot.status === 'available'

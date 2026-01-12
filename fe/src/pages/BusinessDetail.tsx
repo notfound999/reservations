@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   MapPin, Phone, Clock, Star, ChevronLeft,
-  Calendar, MessageSquare, Loader2
+  Calendar, MessageSquare, Loader2, Images, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,8 +11,8 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BookingModal from '@/components/BookingModal';
 import ReviewModal from '@/components/ReviewModal';
-import { businessApi, offeringsApi, reviewsApi } from '@/lib/api';
-import type { Business, Offering, Review } from '@/lib/types';
+import { businessApi, offeringsApi, reviewsApi, galleryApi } from '@/lib/api';
+import type { Business, Offering, Review, BusinessPhoto } from '@/lib/types';
 import { format } from 'date-fns';
 
 const BusinessDetail = () => {
@@ -25,6 +25,8 @@ const BusinessDetail = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [galleryPhotos, setGalleryPhotos] = useState<BusinessPhoto[]>([]);
+  const [lightboxPhoto, setLightboxPhoto] = useState<BusinessPhoto | null>(null);
 
   const fetchReviews = useCallback(async () => {
     if (!id) return;
@@ -54,14 +56,22 @@ const BusinessDetail = () => {
         setBusiness(businessData);
         setOfferings(offeringsData);
 
-        // 2. Fetch Reviews separately so if it fails (403/404),
+        // 2. Fetch Reviews and Gallery separately so if they fail,
         // it doesn't crash the whole page
         try {
           const reviewsData = await reviewsApi.getByBusiness(id);
           setReviews(reviewsData);
         } catch (reviewErr) {
           console.warn('Reviews failed to load, but that is fine:', reviewErr);
-          setReviews([]); // Set to empty array so the UI doesn't break
+          setReviews([]);
+        }
+
+        try {
+          const photosData = await galleryApi.getPhotos(id);
+          setGalleryPhotos(photosData);
+        } catch (photoErr) {
+          console.warn('Gallery photos failed to load:', photoErr);
+          setGalleryPhotos([]);
         }
 
       } catch (err) {
@@ -74,6 +84,13 @@ const BusinessDetail = () => {
 
     fetchData();
   }, [id]);
+
+  // Helper to get full image URL
+  const getImageUrl = (url: string | undefined, fallback: string) => {
+    if (!url) return fallback;
+    if (url.startsWith('http')) return url;
+    return `http://localhost:8080${url}`;
+  };
 
   const handleBookService = (offering: Offering) => {
     setSelectedOffering(offering);
@@ -106,7 +123,7 @@ const BusinessDetail = () => {
       {/* Hero Image */}
       <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
         <img
-          src={business.imageUrl || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop'}
+          src={getImageUrl(business.imageUrl, 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop')}
           alt={business.name}
           className="w-full h-full object-cover"
         />
@@ -172,6 +189,36 @@ const BusinessDetail = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Photo Gallery */}
+            {galleryPhotos.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Images className="h-5 w-5 text-primary" />
+                  <h2 className="text-2xl font-semibold">Gallery</h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {galleryPhotos.map((photo) => (
+                    <div
+                      key={photo.id}
+                      className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                      onClick={() => setLightboxPhoto(photo)}
+                    >
+                      <img
+                        src={getImageUrl(photo.url, '')}
+                        alt={photo.caption || 'Gallery photo'}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      {photo.caption && (
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <p className="text-white text-sm line-clamp-2">{photo.caption}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Services/Offerings */}
             <div>
@@ -340,6 +387,36 @@ const BusinessDetail = () => {
           businessName={business.name}
           onReviewSubmitted={fetchReviews}
         />
+      )}
+
+      {/* Lightbox Modal */}
+      {lightboxPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightboxPhoto(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            onClick={() => setLightboxPhoto(null)}
+          >
+            <X className="h-8 w-8" />
+          </button>
+          <div
+            className="relative max-w-4xl max-h-[90vh] w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={getImageUrl(lightboxPhoto.url, '')}
+              alt={lightboxPhoto.caption || 'Gallery photo'}
+              className="w-full h-full object-contain rounded-lg"
+            />
+            {lightboxPhoto.caption && (
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 rounded-b-lg">
+                <p className="text-white text-center">{lightboxPhoto.caption}</p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ package com.myapp.reservations.DTO.BusinessDTOs;
 
 import com.myapp.reservations.DTO.ScheduleSettingsDTOs.ScheduleSettingsResponse;
 import com.myapp.reservations.DTO.OfferingDTOs.OfferingResponse;
+import com.myapp.reservations.entities.BusinessType;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +16,9 @@ public record BusinessResponse(
         UUID ownerId,
         List<UUID> adminIds,
         ScheduleSettingsResponse schedule,
-        List<OfferingResponse> offerings
-
+        List<OfferingResponse> offerings,
+        BusinessType businessType,
+        String customType,
+        String category, // Display name computed from businessType
+        String imageUrl
 ) {}
-

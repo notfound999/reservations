@@ -1,4 +1,4 @@
-# Issues Found and Fixes Applied
+    # Issues Found and Fixes Applied
 
 ## Issue 1: Profile Save Not Working
 

@@ -1,9 +1,9 @@
 package com.myapp.reservations.DTO.BusinessDTOs;
 
+import com.myapp.reservations.entities.BusinessType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-
 
 public record BusinessRequest(
         @NotBlank(message = "Business name is required")
@@ -16,7 +16,10 @@ public record BusinessRequest(
         String address,
 
         @NotBlank(message = "Phone is required")
-        String phone
+        String phone,
 
+        @NotNull(message = "Business type is required")
+        BusinessType businessType,
 
+        String customType // Optional, used when businessType is OTHER
 ) {}

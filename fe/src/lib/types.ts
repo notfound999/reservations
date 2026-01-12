@@ -25,11 +25,22 @@ export interface AuthResponse {
 }
 
 // ===== Business DTOs =====
+export type BusinessType =
+  | 'SPA_WELLNESS'
+  | 'BARBERSHOP'
+  | 'BEAUTY_SALON'
+  | 'FITNESS'
+  | 'YOGA_MEDITATION'
+  | 'PET_SERVICES'
+  | 'OTHER';
+
 export interface BusinessRequest {
   name: string;
   description: string;
   address: string;
   phone: string;
+  businessType: BusinessType;
+  customType?: string;
 }
 
 export interface Business {
@@ -40,9 +51,19 @@ export interface Business {
   phone: string;
   imageUrl?: string;
   category?: string;
+  businessType?: BusinessType;
+  customType?: string;
   rating?: number;
   reviewCount?: number;
   ownerId: string;
+}
+
+export interface BusinessPhoto {
+  id: string;
+  url: string;
+  caption?: string;
+  displayOrder: number;
+  createdAt: string;
 }
 
 // ===== Service/Offering DTOs =====
@@ -158,4 +179,35 @@ export interface TimeSlot {
   time: string; // "HH:mm" format
   datetime: string; // Full ISO datetime
   status: SlotStatus;
+}
+
+// ===== Time Off DTOs =====
+export interface TimeOffRequest {
+  startDateTime: string; // ISO datetime string
+  endDateTime: string;   // ISO datetime string
+  reason?: string;
+}
+
+export interface TimeOff {
+  id: string;
+  startDateTime: string;
+  endDateTime: string;
+  reason?: string;
+}
+
+// ===== Calendar Event Types =====
+export type CalendarEventType = 'reservation' | 'timeoff';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  type: CalendarEventType;
+  // For reservations
+  customerName?: string;
+  serviceName?: string;
+  status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  // For time-off
+  reason?: string;
 }

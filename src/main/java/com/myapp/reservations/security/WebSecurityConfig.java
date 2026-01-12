@@ -61,14 +61,18 @@ public class WebSecurityConfig {
                         // 1. Lejo login/signup
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // 2. Lejo leximin e bizneseve, shërbimeve dhe orareve për të gjithë (Public)
+                        // 2. Allow access to uploaded files (images)
+                        .requestMatchers("/uploads/**").permitAll()
+
+                        // 3. Lejo leximin e bizneseve, shërbimeve dhe orareve për të gjithë (Public)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/businesses/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/offerings/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/availabilities/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/schedules/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/business-photos/**").permitAll()
 
-                        // 3. Çdo gjë tjetër (POST reservations, UPDATE profile, etj.) kërkon login
+                        // 4. Çdo gjë tjetër (POST reservations, UPDATE profile, etj.) kërkon login
                         .anyRequest().authenticated()
                 );
 
