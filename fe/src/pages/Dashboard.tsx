@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { businessApi, offeringsApi, scheduleApi, reservationsApi, timeOffApi, fileApi, galleryApi } from '@/lib/api';
+import { businessApi, offeringsApi, scheduleApi, reservationsApi, timeOffApi, fileApi, galleryApi, getBaseUrl } from '@/lib/api';
 import type { Business, Offering, ScheduleSettings, WorkingDayRequest, Reservation, TimeOff, CalendarEvent, BusinessType, BusinessPhoto } from '@/lib/types';
 import BusinessCalendar from '@/components/BusinessCalendar';
 import TimeOffModal from '@/components/TimeOffModal';
@@ -186,7 +186,7 @@ const Dashboard = () => {
           setBusinessImageUrl(
             selectedBusiness.imageUrl.startsWith('http')
               ? selectedBusiness.imageUrl
-              : `http://localhost:8080${selectedBusiness.imageUrl}`
+              : `${getBaseUrl()}${selectedBusiness.imageUrl}`
           );
         } else {
           setBusinessImageUrl(null);
@@ -315,7 +315,11 @@ const Dashboard = () => {
 
     setIsSavingSettings(true);
     try {
-      const updated = await businessApi.update(selectedBusiness.id, businessSettingsForm);
+      const updated = await businessApi.update(selectedBusiness.id, {
+        ...businessSettingsForm,
+        businessType: selectedBusiness.businessType || 'OTHER',
+        customType: selectedBusiness.customType,
+      });
       setSelectedBusiness(updated);
       setBusinesses(prev => prev.map(b => b.id === updated.id ? updated : b));
       toast({ title: 'Settings saved!', description: 'Your business settings have been updated.' });
@@ -346,7 +350,7 @@ const Dashboard = () => {
     setIsUploadingImage(true);
     try {
       const result = await fileApi.uploadBusinessImage(selectedBusiness.id, file);
-      setBusinessImageUrl(`http://localhost:8080${result.url}`);
+      setBusinessImageUrl(`${getBaseUrl()}${result.url}`);
       // Update the business in state
       setSelectedBusiness(prev => prev ? { ...prev, imageUrl: result.url } : null);
       setBusinesses(prev => prev.map(b => b.id === selectedBusiness.id ? { ...b, imageUrl: result.url } : b));
@@ -536,24 +540,24 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container">
-        <div className="mb-8 flex items-start justify-between">
+    <div className="min-h-screen py-4 md:py-8">
+      <div className="container px-4">
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Business Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Business Dashboard</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Manage your businesses, services, and bookings
             </p>
           </div>
 
           {/* Business Selector and Add Button */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
             {businesses.length > 0 && (
               <Select
                 value={selectedBusiness?.id}
                 onValueChange={(id) => setSelectedBusiness(businesses.find(b => b.id === id) || null)}
               >
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Select business" />
                 </SelectTrigger>
                 <SelectContent>
@@ -568,9 +572,9 @@ const Dashboard = () => {
 
             <Dialog open={isAddBusinessOpen} onOpenChange={setIsAddBusinessOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Business
+                <Button className="flex-shrink-0">
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Add Business</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -654,11 +658,11 @@ const Dashboard = () => {
         </div>
 
         {businesses.length === 0 ? (
-          <Card className="text-center py-16">
-            <CardContent>
-              <Building2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No businesses yet</h2>
-              <p className="text-muted-foreground mb-6">
+          <Card className="text-center py-12 md:py-16">
+            <CardContent className="p-4 md:p-6">
+              <Building2 className="h-12 w-12 md:h-16 md:w-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-lg md:text-xl font-semibold mb-2">No businesses yet</h2>
+              <p className="text-sm md:text-base text-muted-foreground mb-6">
                 Create your first business to start accepting bookings
               </p>
               <Dialog open={isAddBusinessOpen} onOpenChange={setIsAddBusinessOpen}>
@@ -672,8 +676,8 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         ) : (
-          <Tabs defaultValue="calendar" className="space-y-6">
-            <TabsList className="bg-secondary/50">
+          <Tabs defaultValue="calendar" className="space-y-4 md:space-y-6">
+            <TabsList className="bg-secondary/50 w-full sm:w-auto overflow-x-auto flex-nowrap justify-start">
               <TabsTrigger value="calendar" className="gap-2">
                 <CalendarDays className="h-4 w-4" />
                 My Schedule
@@ -712,8 +716,8 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
+            <TabsContent value="overview" className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -756,29 +760,29 @@ const Dashboard = () => {
               </div>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Business Information</CardTitle>
-                  <CardDescription>Your active business listing</CardDescription>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-lg md:text-xl">Business Information</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">Your active business listing</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 md:p-6">
                   {selectedBusiness && (
                     <div className="space-y-4">
                       <div>
-                        <Label className="text-muted-foreground text-sm">Name</Label>
-                        <p className="font-medium">{selectedBusiness.name}</p>
+                        <Label className="text-muted-foreground text-xs md:text-sm">Name</Label>
+                        <p className="font-medium text-sm md:text-base">{selectedBusiness.name}</p>
                       </div>
                       <div>
-                        <Label className="text-muted-foreground text-sm">Description</Label>
-                        <p>{selectedBusiness.description}</p>
+                        <Label className="text-muted-foreground text-xs md:text-sm">Description</Label>
+                        <p className="text-sm md:text-base">{selectedBusiness.description}</p>
                       </div>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-muted-foreground text-sm">Address</Label>
-                          <p>{selectedBusiness.address}</p>
+                          <Label className="text-muted-foreground text-xs md:text-sm">Address</Label>
+                          <p className="text-sm md:text-base">{selectedBusiness.address}</p>
                         </div>
                         <div>
-                          <Label className="text-muted-foreground text-sm">Phone</Label>
-                          <p>{selectedBusiness.phone}</p>
+                          <Label className="text-muted-foreground text-xs md:text-sm">Phone</Label>
+                          <p className="text-sm md:text-base">{selectedBusiness.phone}</p>
                         </div>
                       </div>
                     </div>
@@ -788,15 +792,15 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Services Tab */}
-            <TabsContent value="services" className="space-y-6">
-              <div className="flex items-center justify-between">
+            <TabsContent value="services" className="space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold">Services</h2>
-                  <p className="text-muted-foreground">{offerings.length} services listed</p>
+                  <h2 className="text-lg md:text-xl font-semibold">Services</h2>
+                  <p className="text-sm md:text-base text-muted-foreground">{offerings.length} services listed</p>
                 </div>
                 <Dialog open={isAddOfferingOpen} onOpenChange={setIsAddOfferingOpen}>
                   <DialogTrigger asChild>
-                    <Button>
+                    <Button className="w-full sm:w-auto">
                       <Plus className="mr-2 h-4 w-4" />
                       Add Service
                     </Button>
@@ -893,17 +897,17 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Schedule Tab */}
-            <TabsContent value="schedule" className="space-y-6">
+            <TabsContent value="schedule" className="space-y-4 md:space-y-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Schedule Settings</CardTitle>
-                  <CardDescription>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-lg md:text-xl">Schedule Settings</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
                     Configure your business hours and booking preferences
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
                   {/* Booking Settings */}
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="minAdvance">Minimum Advance Booking (hours)</Label>
                       <Input
@@ -949,14 +953,23 @@ const Dashboard = () => {
 
                   {/* Working Hours */}
                   <div>
-                    <h3 className="font-medium mb-4">Working Hours</h3>
+                    <h3 className="font-medium mb-4 text-sm md:text-base">Working Hours</h3>
                     <div className="space-y-3">
                       {workingDays.map((day, index) => (
-                        <div key={day.dayOfWeek} className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30">
-                          <div className="w-28">
-                            <span className="font-medium">{DAY_LABELS[day.dayOfWeek]}</span>
+                        <div key={day.dayOfWeek} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-lg bg-secondary/30">
+                          <div className="w-full sm:w-28 flex items-center justify-between sm:justify-start">
+                            <span className="font-medium text-sm md:text-base">{DAY_LABELS[day.dayOfWeek]}</span>
+                            <div className="flex items-center gap-2 sm:hidden">
+                              <Switch
+                                checked={!day.isDayOff}
+                                onCheckedChange={(checked) => updateWorkingDay(index, 'isDayOff', !checked)}
+                              />
+                              <span className="text-xs text-muted-foreground w-14">
+                                {day.isDayOff ? 'Closed' : 'Open'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="hidden sm:flex items-center gap-2">
                             <Switch
                               checked={!day.isDayOff}
                               onCheckedChange={(checked) => updateWorkingDay(index, 'isDayOff', !checked)}
@@ -966,21 +979,21 @@ const Dashboard = () => {
                             </span>
                           </div>
                           {!day.isDayOff && (
-                            <>
+                            <div className="flex items-center gap-2 flex-1">
                               <Input
                                 type="time"
                                 value={day.startTime}
                                 onChange={(e) => updateWorkingDay(index, 'startTime', e.target.value)}
-                                className="w-32"
+                                className="w-full sm:w-32 text-sm"
                               />
-                              <span className="text-muted-foreground">to</span>
+                              <span className="text-muted-foreground text-xs md:text-sm">to</span>
                               <Input
                                 type="time"
                                 value={day.endTime}
                                 onChange={(e) => updateWorkingDay(index, 'endTime', e.target.value)}
-                                className="w-32"
+                                className="w-full sm:w-32 text-sm"
                               />
-                            </>
+                            </div>
                           )}
                         </div>
                       ))}
@@ -1000,15 +1013,15 @@ const Dashboard = () => {
             </TabsContent>
 
             {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-6">
+            <TabsContent value="settings" className="space-y-4 md:space-y-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Business Settings</CardTitle>
-                  <CardDescription>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-lg md:text-xl">Business Settings</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
                     Update your business information
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4 md:p-6">
                   <div className="space-y-2">
                     <Label htmlFor="settingsName">Business Name</Label>
                     <Input
@@ -1027,7 +1040,7 @@ const Dashboard = () => {
                       rows={3}
                     />
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="settingsAddress">Address</Label>
                       <Input
@@ -1047,7 +1060,7 @@ const Dashboard = () => {
                       />
                     </div>
                   </div>
-                  <Button onClick={handleSaveBusinessSettings} disabled={isSavingSettings}>
+                  <Button onClick={handleSaveBusinessSettings} disabled={isSavingSettings} className="w-full sm:w-auto">
                     {isSavingSettings ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
@@ -1125,23 +1138,23 @@ const Dashboard = () => {
 
               {/* Photo Gallery */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                     <Image className="h-5 w-5" />
                     Photo Gallery
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs md:text-sm">
                     Add photos of your work, ambient, or services (max 20 photos)
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4 md:p-6">
                   {/* Gallery Grid */}
                   {galleryPhotos.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
                       {galleryPhotos.map((photo) => (
                         <div key={photo.id} className="relative group aspect-square">
                           <img
-                            src={photo.url.startsWith('http') ? photo.url : `http://localhost:8080${photo.url}`}
+                            src={photo.url.startsWith('http') ? photo.url : `${getBaseUrl()}${photo.url}`}
                             alt={photo.caption || 'Gallery photo'}
                             className="w-full h-full object-cover rounded-lg"
                           />

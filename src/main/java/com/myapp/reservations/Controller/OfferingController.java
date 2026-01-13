@@ -1,7 +1,7 @@
 package com.myapp.reservations.Controller;
 
-import com.myapp.reservations.DTO.OfferingDTOs.OfferingRequest;
-import com.myapp.reservations.DTO.OfferingDTOs.OfferingResponse;
+import com.myapp.reservations.DTO.TimeOffDTOs.OfferingDTOs.OfferingRequest;
+import com.myapp.reservations.DTO.TimeOffDTOs.OfferingDTOs.OfferingResponse;
 import com.myapp.reservations.Services.OfferingService;
 import org.springframework.web.bind.annotation.*;
 

@@ -21,6 +21,13 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
+// Export the base URL without /api for image URLs
+export const getBaseUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+  // Remove /api from the end to get base URL for images
+  return apiUrl.replace(/\/api$/, '');
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

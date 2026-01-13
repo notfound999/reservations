@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BookingModal from '@/components/BookingModal';
 import ReviewModal from '@/components/ReviewModal';
-import { businessApi, offeringsApi, reviewsApi, galleryApi } from '@/lib/api';
+import { businessApi, offeringsApi, reviewsApi, galleryApi, getBaseUrl } from '@/lib/api';
 import type { Business, Offering, Review, BusinessPhoto } from '@/lib/types';
 import { format } from 'date-fns';
 
@@ -89,7 +89,7 @@ const BusinessDetail = () => {
   const getImageUrl = (url: string | undefined, fallback: string) => {
     if (!url) return fallback;
     if (url.startsWith('http')) return url;
-    return `http://localhost:8080${url}`;
+    return `${getBaseUrl()}${url}`;
   };
 
   const handleBookService = (offering: Offering) => {
@@ -141,49 +141,49 @@ const BusinessDetail = () => {
         </Link>
       </div>
 
-      <div className="container -mt-24 relative z-10">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="container px-4 -mt-24 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 md:space-y-8">
             {/* Business Info Card */}
             <Card className="overflow-hidden">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+              <CardContent className="p-4 md:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 md:gap-4 mb-4">
                   <div>
                     {business.category && (
-                      <Badge variant="secondary" className="mb-2">
+                      <Badge variant="secondary" className="mb-2 text-xs md:text-sm">
                         {business.category}
                       </Badge>
                     )}
-                    <h1 className="text-3xl font-bold mb-2">{business.name}</h1>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{business.address}</span>
+                    <h1 className="text-2xl md:text-3xl font-bold mb-2">{business.name}</h1>
+                    <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span className="line-clamp-2">{business.address}</span>
                     </div>
                   </div>
-                  
+
                   {business.rating && (
-                    <div className="flex items-center gap-2 bg-accent px-4 py-2 rounded-xl">
-                      <Star className="h-5 w-5 fill-primary text-primary" />
-                      <span className="font-semibold text-lg">{business.rating}</span>
-                      <span className="text-muted-foreground">
+                    <div className="flex items-center gap-2 bg-accent px-3 md:px-4 py-2 rounded-xl self-start">
+                      <Star className="h-4 w-4 md:h-5 md:w-5 fill-primary text-primary" />
+                      <span className="font-semibold text-base md:text-lg">{business.rating}</span>
+                      <span className="text-xs md:text-sm text-muted-foreground">
                         ({business.reviewCount} reviews)
                       </span>
                     </div>
                   )}
                 </div>
 
-                <p className="text-muted-foreground leading-relaxed mb-6">
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4 md:mb-6">
                   {business.description}
                 </p>
 
-                <div className="flex items-center gap-6 text-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-6 text-xs md:text-sm">
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-primary" />
+                    <Phone className="h-4 w-4 text-primary flex-shrink-0" />
                     <span>{business.phone}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
+                    <Clock className="h-4 w-4 text-primary flex-shrink-0" />
                     <span>Open 9:00 AM - 6:00 PM</span>
                   </div>
                 </div>
@@ -222,31 +222,32 @@ const BusinessDetail = () => {
 
             {/* Services/Offerings */}
             <div>
-              <h2 className="text-2xl font-semibold mb-4">Services</h2>
+              <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Services</h2>
               {offerings.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {offerings.map((offering) => (
                     <Card key={offering.id} className="overflow-hidden">
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-4">
+                      <CardContent className="p-4 md:p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg mb-1">{offering.name}</h3>
-                            <p className="text-sm text-muted-foreground mb-3">
+                            <h3 className="font-semibold text-base md:text-lg mb-1">{offering.name}</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">
                               {offering.description}
                             </p>
-                            <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm">
                               <div className="flex items-center gap-1.5 text-muted-foreground">
                                 <Clock className="h-4 w-4" />
                                 <span>{offering.durationMinutes} min</span>
                               </div>
-                              <span className="font-semibold text-lg text-primary">
+                              <span className="font-semibold text-base md:text-lg text-primary">
                                 ${offering.price.toFixed(2)}
                               </span>
                             </div>
                           </div>
-                          <Button 
+                          <Button
                             onClick={() => handleBookService(offering)}
                             variant="warm"
+                            className="w-full sm:w-auto"
                           >
                             Book
                           </Button>
@@ -266,11 +267,11 @@ const BusinessDetail = () => {
 
             {/* Reviews */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-semibold">Reviews</h2>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 md:mb-4">
+                <h2 className="text-xl md:text-2xl font-semibold">Reviews</h2>
                 <Button
                   variant="ghost"
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                   onClick={() => setIsReviewModalOpen(true)}
                 >
                   <MessageSquare className="h-4 w-4" />
@@ -325,11 +326,11 @@ const BusinessDetail = () => {
 
           {/* Sidebar - Quick Book */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-24">
               <Card className="shadow-hover">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-4">Quick Book</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
+                <CardContent className="p-4 md:p-6">
+                  <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">Quick Book</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Select a service to book your appointment
                   </p>
                   {offerings.length > 0 ? (

@@ -126,18 +126,18 @@ const MyReservations = () => {
 
     return (
       <Card>
-        <CardContent className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 space-y-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{reservation.offeringName}</h3>
-                  <p className="text-muted-foreground">{reservation.businessName}</p>
+        <CardContent className="p-4 md:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
+            <div className="flex-1 space-y-2 md:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-base md:text-lg">{reservation.offeringName}</h3>
+                  <p className="text-sm md:text-base text-muted-foreground">{reservation.businessName}</p>
                 </div>
-                <Badge variant={status.variant}>{status.label}</Badge>
+                <Badge variant={status.variant} className="self-start text-xs md:text-sm">{status.label}</Badge>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 md:gap-4 text-xs md:text-sm">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>{formatDateTime(reservation.startDateTime)}</span>
@@ -153,7 +153,7 @@ const MyReservations = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full sm:w-auto"
                 onClick={() => setConfirmCancelId(reservation.id)}
                 disabled={cancellingId === reservation.id}
               >
@@ -175,18 +175,18 @@ const MyReservations = () => {
 
   const EmptyState = ({ type }: { type: 'upcoming' | 'past' }) => (
     <Card>
-      <CardContent className="py-16 text-center">
-        <CalendarX className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">
+      <CardContent className="py-12 md:py-16 text-center p-4 md:p-6">
+        <CalendarX className="h-10 w-10 md:h-12 md:w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-base md:text-lg font-medium mb-2">
           {type === 'upcoming' ? 'No upcoming reservations' : 'No past reservations'}
         </h3>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-sm md:text-base text-muted-foreground mb-6">
           {type === 'upcoming'
             ? "You don't have any scheduled appointments."
             : "You haven't made any reservations yet."}
         </p>
         {type === 'upcoming' && (
-          <Button onClick={() => navigate('/')}>Browse Services</Button>
+          <Button onClick={() => navigate('/')} className="w-full sm:w-auto">Browse Services</Button>
         )}
       </CardContent>
     </Card>
@@ -201,17 +201,17 @@ const MyReservations = () => {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Reservations</h1>
-          <p className="text-muted-foreground">
+    <div className="min-h-screen py-4 md:py-8">
+      <div className="container max-w-3xl px-4">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">My Reservations</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             View and manage your upcoming and past appointments
           </p>
         </div>
 
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="bg-secondary/50">
+        <Tabs defaultValue="upcoming" className="space-y-4 md:space-y-6">
+          <TabsList className="bg-secondary/50 w-full sm:w-auto">
             <TabsTrigger value="upcoming" className="gap-2">
               <Calendar className="h-4 w-4" />
               Upcoming ({upcoming.length})

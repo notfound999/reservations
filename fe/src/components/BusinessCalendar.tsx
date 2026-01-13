@@ -179,7 +179,11 @@ export const BusinessCalendar = ({
     // Adjust for calendar start hour
     const minutesFromStart = minutesFromDayStart - (startHour * 60);
     const top = Math.max(0, (minutesFromStart / 30) * SLOT_HEIGHT);
-    const height = Math.max(SLOT_HEIGHT, (duration / 30) * SLOT_HEIGHT);
+
+    // Calculate proportional height based on actual duration
+    // SLOT_HEIGHT represents 30 minutes, so 1 minute = SLOT_HEIGHT / 30 pixels
+    const MIN_HEIGHT = 20; // Minimum height for visibility and clickability
+    const height = Math.max(MIN_HEIGHT, (duration / 30) * SLOT_HEIGHT);
 
     return { top, height };
   };
@@ -395,7 +399,6 @@ export const BusinessCalendar = ({
                                     style={{
                                       top: `${top}px`,
                                       height: `${height}px`,
-                                      minHeight: `${SLOT_HEIGHT - 4}px`,
                                     }}
                                     onClick={() => handleEventClick(event)}
                                   >

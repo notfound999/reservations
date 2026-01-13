@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Star, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getBaseUrl } from '@/lib/api';
 import type { Business, Offering } from '@/lib/types';
 
 interface BusinessCardProps {
@@ -13,7 +14,7 @@ const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
   const imageUrl = business.imageUrl
     ? business.imageUrl.startsWith('http')
       ? business.imageUrl
-      : `http://localhost:8080${business.imageUrl}`
+      : `${getBaseUrl()}${business.imageUrl}`
     : 'https://images.unsplash.com/photo-1560472355-536de3962603?w=600&h=400&fit=crop';
 
   return (

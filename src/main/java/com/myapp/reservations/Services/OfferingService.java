@@ -1,7 +1,7 @@
 package com.myapp.reservations.Services;
 
-import com.myapp.reservations.DTO.OfferingDTOs.OfferingRequest;
-import com.myapp.reservations.DTO.OfferingDTOs.OfferingResponse;
+import com.myapp.reservations.DTO.TimeOffDTOs.OfferingDTOs.OfferingRequest;
+import com.myapp.reservations.DTO.TimeOffDTOs.OfferingDTOs.OfferingResponse;
 import com.myapp.reservations.Mappers.OfferingMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.OfferingRepository;

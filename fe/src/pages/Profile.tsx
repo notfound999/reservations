@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { userApi, fileApi } from '@/lib/api';
+import { userApi, fileApi, getBaseUrl } from '@/lib/api';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -60,7 +60,7 @@ const Profile = () => {
         });
         // Set avatar URL if available
         if (data.avatarUrl) {
-          setAvatarUrl(data.avatarUrl.startsWith('http') ? data.avatarUrl : `http://localhost:8080${data.avatarUrl}`);
+          setAvatarUrl(data.avatarUrl.startsWith('http') ? data.avatarUrl : `${getBaseUrl()}${data.avatarUrl}`);
         }
         form.reset({
           name: data.name,
@@ -77,7 +77,7 @@ const Profile = () => {
             phone: user.phone || '',
           });
           if (user.avatarUrl) {
-            setAvatarUrl(user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:8080${user.avatarUrl}`);
+            setAvatarUrl(user.avatarUrl.startsWith('http') ? user.avatarUrl : `${getBaseUrl()}${user.avatarUrl}`);
           }
           form.reset({
             name: user.name,
@@ -115,7 +115,7 @@ const Profile = () => {
     setIsUploadingAvatar(true);
     try {
       const result = await fileApi.uploadUserAvatar(file);
-      const newAvatarUrl = `http://localhost:8080${result.url}`;
+      const newAvatarUrl = `${getBaseUrl()}${result.url}`;
       setAvatarUrl(newAvatarUrl);
       updateUser({ avatarUrl: result.url });
       toast({ title: 'Avatar updated', description: 'Your profile photo has been updated.' });
@@ -193,37 +193,37 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container max-w-2xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-          <p className="text-muted-foreground">
+    <div className="min-h-screen py-4 md:py-8">
+      <div className="container max-w-2xl px-4">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">My Profile</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Manage your personal information
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="relative group">
-                  <Avatar className="h-20 w-20">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="relative group flex-shrink-0">
+                  <Avatar className="h-16 w-16 md:h-20 md:w-20">
                     {avatarUrl && <AvatarImage src={avatarUrl} alt={profileData?.name} />}
-                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xl md:text-2xl">
                       {profileData?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   {/* Upload overlay */}
                   <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     {isUploadingAvatar ? (
-                      <Loader2 className="h-6 w-6 text-white animate-spin" />
+                      <Loader2 className="h-5 w-5 md:h-6 md:w-6 text-white animate-spin" />
                     ) : (
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         className="text-white hover:scale-110 transition-transform"
                       >
-                        <Camera className="h-6 w-6" />
+                        <Camera className="h-5 w-5 md:h-6 md:w-6" />
                       </button>
                     )}
                   </div>
@@ -235,22 +235,24 @@ const Profile = () => {
                     onChange={handleAvatarUpload}
                   />
                 </div>
-                <div>
-                  <CardTitle>{profileData?.name}</CardTitle>
-                  <CardDescription>{profileData?.email}</CardDescription>
-                  <div className="flex gap-2 mt-2">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-lg md:text-xl truncate">{profileData?.name}</CardTitle>
+                  <CardDescription className="text-xs md:text-sm truncate">{profileData?.email}</CardDescription>
+                  <div className="flex flex-wrap gap-2 mt-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploadingAvatar}
+                      className="text-xs md:text-sm"
                     >
                       {isUploadingAvatar ? (
                         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                       ) : (
                         <Camera className="mr-1 h-3 w-3" />
                       )}
-                      {avatarUrl ? 'Change' : 'Upload'} Photo
+                      <span className="hidden xs:inline">{avatarUrl ? 'Change' : 'Upload'} Photo</span>
+                      <span className="xs:hidden">{avatarUrl ? 'Change' : 'Upload'}</span>
                     </Button>
                     {avatarUrl && (
                       <Button
@@ -258,17 +260,17 @@ const Profile = () => {
                         size="sm"
                         onClick={handleAvatarDelete}
                         disabled={isUploadingAvatar}
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive text-xs md:text-sm"
                       >
                         <Trash2 className="mr-1 h-3 w-3" />
-                        Remove
+                        <span className="hidden xs:inline">Remove</span>
                       </Button>
                     )}
                   </div>
                 </div>
               </div>
               {!isEditing && (
-                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="w-full sm:w-auto">
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </Button>
@@ -276,7 +278,7 @@ const Profile = () => {
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="p-4 md:p-6">
             {isEditing ? (
               <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4">
                 <div className="space-y-2">
@@ -322,8 +324,8 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button type="submit" disabled={isLoading}>
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
                     {isLoading ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
@@ -331,7 +333,7 @@ const Profile = () => {
                     )}
                     Save Changes
                   </Button>
-                  <Button type="button" variant="outline" onClick={handleCancel}>
+                  <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
                     <X className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
@@ -371,15 +373,15 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-destructive">Sign Out</CardTitle>
-            <CardDescription>
+        <Card className="mt-4 md:mt-6">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-destructive text-lg md:text-xl">Sign Out</CardTitle>
+            <CardDescription className="text-xs md:text-sm">
               Sign out of your account on this device
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button variant="destructive" onClick={handleLogout}>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </Button>
