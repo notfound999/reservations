@@ -17,6 +17,8 @@ import type {
   User,
   TimeOffRequest,
   TimeOff,
+  Notification,
+  UnreadCountResponse,
 } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -181,6 +183,16 @@ export const reservationsApi = {
   cancel: async (id: string): Promise<void> => {
     await api.patch(`/reservations/${id}/cancel`);
   },
+
+  confirm: async (id: string): Promise<Reservation> => {
+    const response = await api.patch(`/reservations/${id}/confirm`);
+    return response.data;
+  },
+
+  reject: async (id: string, reason?: string): Promise<Reservation> => {
+    const response = await api.patch(`/reservations/${id}/reject`, { reason });
+    return response.data;
+  },
 };
 
 // ===== Reviews API =====
@@ -267,6 +279,28 @@ export const galleryApi = {
   updateCaption: async (photoId: string, caption: string): Promise<BusinessPhoto> => {
     const response = await api.patch(`/files/business-photos/${photoId}/caption`, { caption });
     return response.data;
+  },
+};
+
+// ===== Notifications API =====
+export const notificationsApi = {
+  getAll: async (): Promise<Notification[]> => {
+    const response = await api.get('/notifications');
+    return response.data;
+  },
+
+  getUnreadCount: async (): Promise<UnreadCountResponse> => {
+    const response = await api.get('/notifications/unread-count');
+    return response.data;
+  },
+
+  markAsRead: async (id: string): Promise<Notification> => {
+    const response = await api.patch(`/notifications/${id}/read`);
+    return response.data;
+  },
+
+  markAllAsRead: async (): Promise<void> => {
+    await api.patch('/notifications/read-all');
   },
 };
 

@@ -1,5 +1,6 @@
 package com.myapp.reservations.Controller;
 
+import com.myapp.reservations.DTO.ReservationDTOs.RejectRequest;
 import com.myapp.reservations.DTO.ReservationDTOs.ReservationRequest;
 import com.myapp.reservations.DTO.ReservationDTOs.ReservationResponse;
 import com.myapp.reservations.Services.ReservationService;
@@ -46,5 +47,16 @@ public class ReservationController {
     @GetMapping("/business/{businessId}")
     public List<ReservationResponse> getReservationsByBusiness(@PathVariable UUID businessId) {
         return reservationService.getReservationsByBusiness(businessId);
+    }
+
+    @PatchMapping("/{id}/confirm")
+    public ReservationResponse confirmReservation(@PathVariable UUID id) {
+        return reservationService.confirmReservation(id);
+    }
+
+    @PatchMapping("/{id}/reject")
+    public ReservationResponse rejectReservation(@PathVariable UUID id, @RequestBody(required = false) RejectRequest request) {
+        String reason = request != null ? request.reason() : null;
+        return reservationService.rejectReservation(id, reason);
     }
 }

@@ -211,3 +211,20 @@ export interface CalendarEvent {
   // For time-off
   reason?: string;
 }
+
+// ===== Notification DTOs =====
+export type NotificationType = 'INFO' | 'SUCCESS' | 'ALERT' | 'WARNING';
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  isRead: boolean;
+  targetUrl?: string;
+  createdAt: string;
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number;
+}

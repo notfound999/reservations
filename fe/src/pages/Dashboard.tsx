@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { parseISO, startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes } from 'date-fns';
+import { parseISO, startOfWeek, endOfWeek, isWithinInterval, differenceInMinutes, format } from 'date-fns';
 import {
   Building2, Plus, Clock, DollarSign,
   Calendar, Settings, List, Loader2, Trash2, ChevronDown, Save, CalendarDays,
-  Camera, Image, X, Upload
+  Camera, Image, X, Upload, Check, AlertCircle, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,6 +120,9 @@ const Dashboard = () => {
   const [galleryPhotos, setGalleryPhotos] = useState<BusinessPhoto[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
+  // Reservation action state
+  const [processingReservationId, setProcessingReservationId] = useState<string | null>(null);
 
   const businessForm = useForm<BusinessFormData>({
     resolver: zodResolver(businessSchema),
@@ -505,6 +508,47 @@ const Dashboard = () => {
     };
   }, [reservations, offerings]);
 
+  // Filter pending reservations
+  const pendingReservations = useMemo(() => {
+    return reservations.filter(r => r.status === 'PENDING');
+  }, [reservations]);
+
+  // Handle confirm reservation
+  const handleConfirmReservation = async (reservationId: string) => {
+    setProcessingReservationId(reservationId);
+    try {
+      const updated = await reservationsApi.confirm(reservationId);
+      setReservations(prev => prev.map(r => r.id === reservationId ? updated : r));
+      toast({ title: 'Reservation confirmed!', description: 'The customer has been notified.' });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Could not confirm reservation',
+        variant: 'destructive'
+      });
+    } finally {
+      setProcessingReservationId(null);
+    }
+  };
+
+  // Handle reject reservation
+  const handleRejectReservation = async (reservationId: string) => {
+    setProcessingReservationId(reservationId);
+    try {
+      const updated = await reservationsApi.reject(reservationId);
+      setReservations(prev => prev.map(r => r.id === reservationId ? updated : r));
+      toast({ title: 'Reservation rejected', description: 'The customer has been notified.' });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Could not reject reservation',
+        variant: 'destructive'
+      });
+    } finally {
+      setProcessingReservationId(null);
+    }
+  };
+
   const handleAddTimeOff = async (data: {
     startDateTime: string;
     endDateTime: string;
@@ -717,7 +761,7 @@ const Dashboard = () => {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-4 md:space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -757,7 +801,91 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
+                <Card className={pendingReservations.length > 0 ? 'border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20' : ''}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${pendingReservations.length > 0 ? 'bg-yellow-500/20' : 'bg-muted'}`}>
+                        <AlertCircle className={`h-6 w-6 ${pendingReservations.length > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`} />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{pendingReservations.length}</p>
+                        <p className="text-sm text-muted-foreground">Pending approval</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
+
+              {/* Pending Reservations Section */}
+              {pendingReservations.length > 0 && (
+                <Card className="border-yellow-500/50">
+                  <CardHeader className="p-4 md:p-6">
+                    <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-yellow-600" />
+                      Pending Reservations
+                    </CardTitle>
+                    <CardDescription className="text-xs md:text-sm">
+                      These reservations require your approval
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 md:p-6 pt-0">
+                    <div className="space-y-3">
+                      {pendingReservations.map((reservation) => (
+                        <div
+                          key={reservation.id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-secondary/30 border"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <User className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm">{reservation.userName}</p>
+                              <p className="text-sm text-muted-foreground">{reservation.offeringName}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {format(parseISO(reservation.startDateTime), 'EEE, MMM d, yyyy \'at\' h:mm a')}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 sm:shrink-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 sm:flex-none text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                              onClick={() => handleRejectReservation(reservation.id)}
+                              disabled={processingReservationId === reservation.id}
+                            >
+                              {processingReservationId === reservation.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <X className="h-4 w-4 mr-1" />
+                                  Reject
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
+                              onClick={() => handleConfirmReservation(reservation.id)}
+                              disabled={processingReservationId === reservation.id}
+                            >
+                              {processingReservationId === reservation.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Confirm
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card>
                 <CardHeader className="p-4 md:p-6">

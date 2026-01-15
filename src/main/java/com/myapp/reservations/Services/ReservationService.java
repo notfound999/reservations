@@ -6,13 +6,16 @@ import com.myapp.reservations.Mappers.ReservationMapper;
 import com.myapp.reservations.Repository.*;
 import com.myapp.reservations.entities.Business;
 import com.myapp.reservations.entities.BusinessSchedule.*;
+import com.myapp.reservations.entities.NotificationType;
 import com.myapp.reservations.entities.User;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -25,15 +28,22 @@ public class ReservationService {
     private final TimeOffRepository timeOffRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
-    public ReservationService(BusinessRepository businessRepository , ReservationRepository reservationRepository , ScheduleSettingsRepository scheduleSettingsRepository,OfferingRepository offeringRepository,UserRepository userRepository,TimeOffRepository timeOffRepository, UserService userService) {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
+
+    public ReservationService(BusinessRepository businessRepository, ReservationRepository reservationRepository,
+                              ScheduleSettingsRepository scheduleSettingsRepository, OfferingRepository offeringRepository,
+                              UserRepository userRepository, TimeOffRepository timeOffRepository,
+                              UserService userService, @Lazy NotificationService notificationService) {
         this.businessRepository = businessRepository;
-        this.reservationRepository=reservationRepository;
+        this.reservationRepository = reservationRepository;
         this.scheduleSettingsRepository = scheduleSettingsRepository;
         this.offeringRepository = offeringRepository;
-        this.timeOffRepository= timeOffRepository;
+        this.timeOffRepository = timeOffRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     private void validateWorkingHours(LocalDateTime startDateTime, LocalDateTime endDateTime, ScheduleSettings settings) {
@@ -108,7 +118,7 @@ public class ReservationService {
         reservation.setStartDateTime(startDateTime);
         reservation.setEndDateTime(endDateTime);
 
-        if (schedule.getAutoConfirmAppointments()==true) {
+        if (schedule.getAutoConfirmAppointments() == true) {
             reservation.setStatus(ReservationStatus.CONFIRMED);
         } else {
             reservation.setStatus(ReservationStatus.PENDING);
@@ -116,6 +126,42 @@ public class ReservationService {
         reservation.setCreatedAt(LocalDateTime.now());
 
         reservationRepository.save(reservation);
+
+        // Send notification to business owner
+        String formattedDate = startDateTime.format(DATE_FORMATTER);
+        String notificationTitle = schedule.getAutoConfirmAppointments()
+                ? "New Reservation Confirmed"
+                : "New Reservation Request";
+        String notificationMessage = String.format(
+                "%s booked '%s' for %s.%s",
+                user.getName(),
+                offering.getName(),
+                formattedDate,
+                schedule.getAutoConfirmAppointments() ? "" : " Please review and confirm."
+        );
+        NotificationType notificationType = schedule.getAutoConfirmAppointments()
+                ? NotificationType.SUCCESS
+                : NotificationType.INFO;
+
+        notificationService.createNotificationForUser(
+                business.getOwner().getId(),
+                notificationTitle,
+                notificationMessage,
+                notificationType,
+                "/dashboard"
+        );
+
+        // Notify customer if auto-confirmed
+        if (schedule.getAutoConfirmAppointments()) {
+            notificationService.createNotificationForUser(
+                    user.getId(),
+                    "Reservation Confirmed",
+                    String.format("Your reservation at %s for '%s' on %s has been confirmed.",
+                            business.getName(), offering.getName(), formattedDate),
+                    NotificationType.SUCCESS,
+                    "/reservations"
+            );
+        }
 
         return ReservationMapper.toResponse(reservation);
     }
@@ -149,7 +195,6 @@ public class ReservationService {
 
     @Transactional
     public void cancelReservation(UUID reservationId) {
-        // 1. Find the reservation
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Reservation not found with ID: " + reservationId));
 
@@ -157,10 +202,111 @@ public class ReservationService {
             throw new RuntimeException("Reservation is already cancelled.");
         }
 
-        reservation.setStatus(ReservationStatus.CANCELLED);
+        UUID currentUserId = userService.getCurrentUserId();
+        boolean isCustomer = reservation.getUser().getId().equals(currentUserId);
+        boolean isBusinessOwner = reservation.getBusiness().getOwner().getId().equals(currentUserId);
 
-        // 4. Save
+        reservation.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
+
+        String formattedDate = reservation.getStartDateTime().format(DATE_FORMATTER);
+
+        // Notify the other party
+        if (isCustomer) {
+            // Customer cancelled -> notify business owner
+            notificationService.createNotificationForUser(
+                    reservation.getBusiness().getOwner().getId(),
+                    "Reservation Cancelled",
+                    String.format("%s cancelled their reservation for '%s' on %s.",
+                            reservation.getUser().getName(),
+                            reservation.getOffering().getName(),
+                            formattedDate),
+                    NotificationType.WARNING,
+                    "/dashboard"
+            );
+        } else if (isBusinessOwner) {
+            // Business owner cancelled -> notify customer
+            notificationService.createNotificationForUser(
+                    reservation.getUser().getId(),
+                    "Reservation Cancelled",
+                    String.format("Your reservation at %s for '%s' on %s has been cancelled by the business.",
+                            reservation.getBusiness().getName(),
+                            reservation.getOffering().getName(),
+                            formattedDate),
+                    NotificationType.ALERT,
+                    "/reservations"
+            );
+        }
+    }
+
+    @Transactional
+    public ReservationResponse confirmReservation(UUID reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+        UUID currentUserId = userService.getCurrentUserId();
+        if (!reservation.getBusiness().getOwner().getId().equals(currentUserId)) {
+            throw new RuntimeException("Only the business owner can confirm reservations");
+        }
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new RuntimeException("Only pending reservations can be confirmed");
+        }
+
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+        reservationRepository.save(reservation);
+
+        String formattedDate = reservation.getStartDateTime().format(DATE_FORMATTER);
+
+        // Notify customer
+        notificationService.createNotificationForUser(
+                reservation.getUser().getId(),
+                "Reservation Confirmed",
+                String.format("Your reservation at %s for '%s' on %s has been confirmed!",
+                        reservation.getBusiness().getName(),
+                        reservation.getOffering().getName(),
+                        formattedDate),
+                NotificationType.SUCCESS,
+                "/reservations"
+        );
+
+        return ReservationMapper.toResponse(reservation);
+    }
+
+    @Transactional
+    public ReservationResponse rejectReservation(UUID reservationId, String reason) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+
+        UUID currentUserId = userService.getCurrentUserId();
+        if (!reservation.getBusiness().getOwner().getId().equals(currentUserId)) {
+            throw new RuntimeException("Only the business owner can reject reservations");
+        }
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new RuntimeException("Only pending reservations can be rejected");
+        }
+
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
+
+        String formattedDate = reservation.getStartDateTime().format(DATE_FORMATTER);
+        String reasonText = (reason != null && !reason.isBlank()) ? " Reason: " + reason : "";
+
+        // Notify customer
+        notificationService.createNotificationForUser(
+                reservation.getUser().getId(),
+                "Reservation Rejected",
+                String.format("Your reservation at %s for '%s' on %s was not approved.%s",
+                        reservation.getBusiness().getName(),
+                        reservation.getOffering().getName(),
+                        formattedDate,
+                        reasonText),
+                NotificationType.ALERT,
+                "/reservations"
+        );
+
+        return ReservationMapper.toResponse(reservation);
     }
 
     public java.util.List<ReservationResponse> getMyReservations(UUID userId) {

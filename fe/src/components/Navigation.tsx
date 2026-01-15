@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
+import NotificationBell from './NotificationBell';
 
 const Navigation = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -75,7 +76,9 @@ const Navigation = () => {
             </Link>
 
             {isAuthenticated ? (
-              <DropdownMenu>
+              <>
+                <NotificationBell />
+                <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2 px-3">
                     <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
@@ -111,6 +114,7 @@ const Navigation = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </>
             ) : (
               <Button onClick={() => setIsAuthModalOpen(true)}>
                 Sign In
