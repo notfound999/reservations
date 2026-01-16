@@ -1,6 +1,6 @@
 package com.myapp.reservations.DTO.BusinessDTOs;
 
-import com.myapp.reservations.entities.BusinessType;
+import com.myapp.reservations.entities.BusinessEntities.BusinessType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

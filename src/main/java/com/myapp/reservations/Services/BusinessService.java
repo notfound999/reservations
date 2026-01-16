@@ -7,8 +7,8 @@ import com.myapp.reservations.Mappers.BusinessMapper;
 import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.UserRepository;
-import com.myapp.reservations.entities.Business;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.User.User;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

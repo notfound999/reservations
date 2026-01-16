@@ -1,6 +1,6 @@
 package com.myapp.reservations.DTO.ReservationDTOs;
 
-import com.myapp.reservations.entities.BusinessSchedule.ReservationStatus;
+import com.myapp.reservations.entities.Reservation.ReservationStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

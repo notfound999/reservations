@@ -5,9 +5,9 @@ import com.myapp.reservations.DTO.ReviewDTOs.ReviewResponse;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.ReviewRepository;
 import com.myapp.reservations.Repository.UserRepository;
-import com.myapp.reservations.entities.Business;
-import com.myapp.reservations.entities.Review;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.Review.Review;
+import com.myapp.reservations.entities.User.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

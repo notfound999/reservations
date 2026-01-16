@@ -3,8 +3,8 @@ package com.myapp.reservations.Services;
 import com.myapp.reservations.DTO.BusinessPhotoDTOs.BusinessPhotoResponse;
 import com.myapp.reservations.Repository.BusinessPhotoRepository;
 import com.myapp.reservations.Repository.BusinessRepository;
-import com.myapp.reservations.entities.Business;
-import com.myapp.reservations.entities.BusinessPhoto;
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.BusinessEntities.BusinessPhoto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

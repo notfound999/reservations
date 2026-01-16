@@ -1,6 +1,6 @@
 package com.myapp.reservations.Repository;
 
-import com.myapp.reservations.entities.BusinessPhoto;
+import com.myapp.reservations.entities.BusinessEntities.BusinessPhoto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

@@ -1,4 +1,4 @@
-package com.myapp.reservations.entities;
+package com.myapp.reservations.entities.User;
 
 public enum Role {
     USER,

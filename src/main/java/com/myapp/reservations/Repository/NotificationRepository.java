@@ -1,6 +1,6 @@
 package com.myapp.reservations.Repository;
 
-import com.myapp.reservations.entities.Notification;
+import com.myapp.reservations.entities.Notification.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

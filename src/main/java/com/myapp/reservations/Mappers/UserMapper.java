@@ -2,7 +2,7 @@ package com.myapp.reservations.Mappers;
 
 import com.myapp.reservations.DTO.UserDTOs.UserRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserResponse;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.User.User;
 
 public class UserMapper {
 

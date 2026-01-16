@@ -1,7 +1,7 @@
 package com.myapp.reservations.Services;
 
 import com.myapp.reservations.Repository.UserRepository;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.User.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

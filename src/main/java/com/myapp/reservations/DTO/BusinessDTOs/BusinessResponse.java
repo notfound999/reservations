@@ -2,7 +2,7 @@ package com.myapp.reservations.DTO.BusinessDTOs;
 
 import com.myapp.reservations.DTO.ScheduleSettingsDTOs.ScheduleSettingsResponse;
 import com.myapp.reservations.DTO.TimeOffDTOs.OfferingDTOs.OfferingResponse;
-import com.myapp.reservations.entities.BusinessType;
+import com.myapp.reservations.entities.BusinessEntities.BusinessType;
 
 import java.util.List;
 import java.util.UUID;

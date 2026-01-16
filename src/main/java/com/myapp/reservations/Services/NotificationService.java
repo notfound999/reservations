@@ -5,8 +5,9 @@ import com.myapp.reservations.DTO.NotificationDTOs.NotificationResponse;
 import com.myapp.reservations.Mappers.NotificationMapper;
 import com.myapp.reservations.Repository.NotificationRepository;
 import com.myapp.reservations.Repository.UserRepository;
-import com.myapp.reservations.entities.Notification;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.Notification.Notification;
+import com.myapp.reservations.entities.Notification.NotificationType;
+import com.myapp.reservations.entities.User.User;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -82,7 +83,7 @@ public class NotificationService {
 
     @Transactional
     public void createNotificationForUser(UUID userId, String title, String message,
-                                          com.myapp.reservations.entities.NotificationType type,
+                                          NotificationType type,
                                           String targetUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

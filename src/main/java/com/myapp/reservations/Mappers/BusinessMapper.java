@@ -2,9 +2,9 @@ package com.myapp.reservations.Mappers;
 
 import com.myapp.reservations.DTO.BusinessDTOs.BusinessRequest;
 import com.myapp.reservations.DTO.BusinessDTOs.BusinessResponse;
-import com.myapp.reservations.entities.Business;
-import com.myapp.reservations.entities.BusinessType;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.BusinessEntities.BusinessType;
+import com.myapp.reservations.entities.User.User;
 
 import java.util.ArrayList;
 import java.util.List;

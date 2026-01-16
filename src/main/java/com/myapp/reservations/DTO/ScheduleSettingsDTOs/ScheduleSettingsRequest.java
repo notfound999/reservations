@@ -1,7 +1,7 @@
 package com.myapp.reservations.DTO.ScheduleSettingsDTOs;
 
 import com.myapp.reservations.DTO.WorkingDayDTOs.WorkingDayRequest;
-import com.myapp.reservations.entities.BusinessSchedule.ReservationType;
+import com.myapp.reservations.entities.Reservation.ReservationType;
 import jakarta.validation.constraints.Min;
 
 import java.util.List;

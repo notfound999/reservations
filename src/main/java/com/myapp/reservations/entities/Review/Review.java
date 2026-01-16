@@ -1,5 +1,7 @@
-package com.myapp.reservations.entities;
+package com.myapp.reservations.entities.Review;
 
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.User.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

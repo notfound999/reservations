@@ -7,7 +7,7 @@ import com.myapp.reservations.DTO.UserDTOs.UserResponse;
 import com.myapp.reservations.Repository.UserRepository;
 import com.myapp.reservations.Services.UserService;
 import com.myapp.reservations.security.JwtUtil;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.User.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;

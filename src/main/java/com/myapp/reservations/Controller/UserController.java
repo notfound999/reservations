@@ -3,7 +3,7 @@ package com.myapp.reservations.Controller;
 import com.myapp.reservations.DTO.UserDTOs.UserRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserResponse;
 import com.myapp.reservations.Services.UserService;
-import com.myapp.reservations.entities.Role;
+import Role;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

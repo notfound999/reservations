@@ -1,6 +1,5 @@
 package com.myapp.reservations.Services;
 
-import com.myapp.reservations.DTO.ReservationDTOs.ReservationRequest;
 import com.myapp.reservations.DTO.ScheduleSettingsDTOs.ScheduleSettingsRequest;
 import com.myapp.reservations.DTO.ScheduleSettingsDTOs.ScheduleSettingsResponse;
 import com.myapp.reservations.DTO.WorkingDayDTOs.WorkingDayRequest;
@@ -8,8 +7,8 @@ import com.myapp.reservations.Mappers.ScheduleMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.ScheduleSettingsRepository;
 import com.myapp.reservations.Repository.WorkingDayRepository;
-import com.myapp.reservations.entities.Business;
-import com.myapp.reservations.entities.BusinessSchedule.ReservationType;
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.Reservation.ReservationType;
 import com.myapp.reservations.entities.BusinessSchedule.ScheduleSettings;
 import com.myapp.reservations.entities.BusinessSchedule.WorkingDay;
 import jakarta.transaction.Transactional;

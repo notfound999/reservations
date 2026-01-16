@@ -1,16 +1,15 @@
-package com.myapp.reservations.entities.BusinessSchedule;
+package com.myapp.reservations.entities.Reservation;
 
-import com.myapp.reservations.entities.Business;
-import com.myapp.reservations.entities.User;
+import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.BusinessSchedule.Offering;
+import com.myapp.reservations.entities.User.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.UUID;
 
 @Entity

@@ -1,5 +1,6 @@
-package com.myapp.reservations.entities;
+package com.myapp.reservations.entities.Notification;
 
+import com.myapp.reservations.entities.User.User;
 import jakarta.persistence.*;
 import lombok.*;
 

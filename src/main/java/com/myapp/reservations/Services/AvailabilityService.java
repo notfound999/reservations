@@ -4,7 +4,7 @@ import com.myapp.reservations.DTO.BusyBlockResponse;
 import com.myapp.reservations.Repository.ReservationRepository;
 import com.myapp.reservations.Repository.ScheduleSettingsRepository;
 import com.myapp.reservations.Repository.TimeOffRepository;
-import com.myapp.reservations.entities.BusinessSchedule.Reservation;
+import com.myapp.reservations.entities.Reservation.Reservation;
 import com.myapp.reservations.entities.BusinessSchedule.ScheduleSettings;
 import com.myapp.reservations.entities.BusinessSchedule.TimeOff;
 import com.myapp.reservations.entities.BusinessSchedule.WorkingDay;

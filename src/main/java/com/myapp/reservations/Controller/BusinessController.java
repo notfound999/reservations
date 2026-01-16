@@ -7,7 +7,6 @@ import com.myapp.reservations.Services.BusinessService;
 import com.myapp.reservations.Services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -60,7 +59,7 @@ public class BusinessController {
     }
 
     @GetMapping("{businessId}/admins")
-    public List<UserResponse> getAllAdmins(@PathVariable(value = "businessId") UUID businessId){
+    public List<UserResponse> getAllAdmins(@PathVariable UUID businessId){
         if (businessId == null ) return null ;
         return businessService.getAllAdmins(businessId);
     }

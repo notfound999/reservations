@@ -1,4 +1,4 @@
-package com.myapp.reservations.entities;
+package com.myapp.reservations.entities.BusinessEntities;
 
 public enum BusinessType {
     SPA_WELLNESS,

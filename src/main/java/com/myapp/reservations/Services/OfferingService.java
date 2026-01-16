@@ -5,7 +5,7 @@ import com.myapp.reservations.DTO.TimeOffDTOs.OfferingDTOs.OfferingResponse;
 import com.myapp.reservations.Mappers.OfferingMapper;
 import com.myapp.reservations.Repository.BusinessRepository;
 import com.myapp.reservations.Repository.OfferingRepository;
-import com.myapp.reservations.entities.Business;
+import com.myapp.reservations.entities.BusinessEntities.Business;
 import com.myapp.reservations.entities.BusinessSchedule.Offering;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;

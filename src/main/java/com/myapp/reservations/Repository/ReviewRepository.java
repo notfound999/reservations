@@ -1,6 +1,6 @@
 package com.myapp.reservations.Repository;
 
-import com.myapp.reservations.entities.Review;
+import com.myapp.reservations.entities.Review.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

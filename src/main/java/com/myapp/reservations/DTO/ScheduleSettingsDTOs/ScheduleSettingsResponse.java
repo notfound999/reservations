@@ -1,7 +1,7 @@
 package com.myapp.reservations.DTO.ScheduleSettingsDTOs;
 
 import com.myapp.reservations.DTO.WorkingDayDTOs.WorkingDayResponse;
-import com.myapp.reservations.entities.BusinessSchedule.ReservationType;
+import com.myapp.reservations.entities.Reservation.ReservationType;
 
 import java.util.List;
 import java.util.UUID;
