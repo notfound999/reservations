@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, Sparkles, Loader2 } from 'lucide-react';
+import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BusinessCard from '@/components/BusinessCard';
+import { SkeletonGrid } from '@/components/ui/skeleton-loader';
 import { businessApi, offeringsApi } from '@/lib/api';
 import type { Business } from '@/lib/types';
 
@@ -161,9 +162,7 @@ const Index = () => {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
+            <SkeletonGrid count={6} />
           ) : error ? (
             <div className="text-center py-16">
               <p className="text-destructive mb-4">{error}</p>

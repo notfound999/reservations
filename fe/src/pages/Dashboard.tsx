@@ -9,6 +9,7 @@ import {
   Calendar, Settings, List, Loader2, Trash2, ChevronDown, Save, CalendarDays,
   Camera, Image, X, Upload, Check, AlertCircle, User
 } from 'lucide-react';
+import { SkeletonDashboard } from '@/components/ui/skeleton-loader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -577,8 +578,14 @@ const Dashboard = () => {
 
   if (isFetching) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen py-4 md:py-8">
+        <div className="container px-4">
+          <div className="mb-6 md:mb-8">
+            <div className="h-8 w-48 bg-muted animate-shimmer rounded-md mb-2" />
+            <div className="h-4 w-64 bg-muted animate-shimmer rounded-md" />
+          </div>
+          <SkeletonDashboard />
+        </div>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, addDays, isSameDay, startOfDay, parse, addMinutes, isBefore, endOfDay, formatISO } from 'date-fns';
-import { Clock, Loader2 } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { SkeletonTimeSlots } from '@/components/ui/skeleton-loader';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +23,10 @@ import { useToast } from '@/hooks/use-toast';
 import { scheduleApi, reservationsApi } from '@/lib/api';
 import type { Offering, BusyBlock, TimeSlot, SlotStatus } from '@/lib/types';
 import AuthModal from './AuthModal';
+import BookingSuccessModal from './BookingSuccessModal';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useBookingDraft } from '@/hooks/use-booking-draft';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface BookingModalProps {
   open: boolean;
@@ -108,6 +112,14 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
   const [busyBlocks, setBusyBlocks] = useState<BusyBlock[]>([]);
   const [isFetchingSlots, setIsFetchingSlots] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Draft saving hook
+  const { hasDraft, saveDraft, clearDraft, restoreDraft } = useBookingDraft(
+    businessId,
+    offering?.id || ''
+  );
 
   // Generate dates for the next 14 days
   const availableDates = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i));
@@ -134,8 +146,54 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     fetchBusyBlocks();
   }, [businessId, selectedDate, open, step]);
   
+  // Restore draft when modal opens
+  useEffect(() => {
+    if (open && hasDraft && !draftRestored && offering) {
+      const draft = restoreDraft();
+      if (draft) {
+        toast({
+          title: 'Continue where you left off?',
+          description: 'We found your previous booking attempt.',
+          action: {
+            label: 'Restore',
+            onClick: () => {
+              try {
+                setSelectedDate(new Date(draft.selectedDate));
+                setSelectedSlot(draft.selectedSlot);
+                setNotes(draft.notes);
+                setStep('datetime');
+                setDraftRestored(true);
+                toast({
+                  title: 'Draft restored',
+                  description: 'Your previous selection has been restored.',
+                });
+              } catch (error) {
+                console.error('Failed to restore draft:', error);
+              }
+            },
+          },
+        });
+      }
+    }
+  }, [open, hasDraft, draftRestored, offering, restoreDraft, toast]);
+
+  // Save draft when state changes (debounced)
+  const debouncedDate = useDebounce(selectedDate, 500);
+  const debouncedSlot = useDebounce(selectedSlot, 500);
+  const debouncedNotes = useDebounce(notes, 500);
+
+  useEffect(() => {
+    if (open && offering && step !== 'info') {
+      saveDraft({
+        selectedDate: debouncedDate.toISOString(),
+        selectedSlot: debouncedSlot,
+        notes: debouncedNotes,
+      });
+    }
+  }, [debouncedDate, debouncedSlot, debouncedNotes, open, offering, step, saveDraft]);
+
   // Generate time slots for selected date
-  const timeSlots = offering 
+  const timeSlots = offering
     ? generateTimeSlots(selectedDate, offering.durationMinutes, busyBlocks)
     : [];
 
@@ -169,7 +227,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
 
   const handleConfirmBooking = async () => {
     if (!offering || !selectedSlot) return;
-    
+
     setIsLoading(true);
     try {
       await reservationsApi.create({
@@ -178,14 +236,16 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         startTime: selectedSlot.datetime,
         notes: notes || undefined,
       });
-      
-      toast({
-        title: 'Booking Confirmed!',
-        description: `Your appointment for ${offering.name} has been booked.`,
-      });
-      
+
+      // Clear draft on successful booking
+      clearDraft();
+
+      // Close booking modal and show success modal
       onOpenChange(false);
-      resetModal();
+      setShowSuccessModal(true);
+
+      // Reset booking modal for next time
+      setTimeout(() => resetModal(), 300);
     } catch (error) {
       toast({
         title: 'Booking Failed',
@@ -203,6 +263,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     setSelectedSlot(null);
     setNotes('');
     setBusyBlocks([]);
+    setDraftRestored(false);
   };
 
   const handleClose = () => {
@@ -285,9 +346,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
               </Label>
 
               {isFetchingSlots ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
+                <SkeletonTimeSlots />
               ) : (
                 <>
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2 pb-4">
@@ -458,6 +517,15 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
         onSuccess={handleAuthSuccess}
+      />
+
+      <BookingSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        offering={offering}
+        businessName={businessName}
+        selectedDate={selectedDate}
+        selectedTime={selectedSlot?.time || ''}
       />
     </>
   );

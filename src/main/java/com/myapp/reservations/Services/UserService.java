@@ -5,7 +5,7 @@ import com.myapp.reservations.DTO.UserDTOs.UserRequest;
 import com.myapp.reservations.DTO.UserDTOs.UserResponse;
 import com.myapp.reservations.Mappers.UserMapper;
 import com.myapp.reservations.Repository.UserRepository;
-import Role;
+import com.myapp.reservations.entities.User.Role;
 import com.myapp.reservations.entities.User.User;
 import com.myapp.reservations.security.AuthTokenFilter;
 import jakarta.servlet.http.HttpServletRequest;

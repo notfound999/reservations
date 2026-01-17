@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Star, Clock } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getBaseUrl } from '@/lib/api';
-import type { Business, Offering } from '@/lib/types';
+import type { Business } from '@/lib/types';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
 interface BusinessCardProps {
   business: Business;
@@ -11,6 +13,8 @@ interface BusinessCardProps {
 }
 
 const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
+
   const imageUrl = business.imageUrl
     ? business.imageUrl.startsWith('http')
       ? business.imageUrl
@@ -19,7 +23,15 @@ const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
 
   return (
     <Link to={`/business/${business.id}`}>
-      <Card className="group overflow-hidden cursor-pointer h-full">
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 20 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        whileHover={{ y: -8, transition: { duration: 0.2 } }}
+        className="h-full"
+      >
+        <Card className="group overflow-hidden cursor-pointer h-full shadow-card hover:shadow-hover transition-shadow duration-300">
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
@@ -28,12 +40,18 @@ const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           {business.category && (
-            <Badge 
-              variant="secondary" 
-              className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm"
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
             >
-              {business.category}
-            </Badge>
+              <Badge
+                variant="secondary"
+                className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm"
+              >
+                {business.category}
+              </Badge>
+            </motion.div>
           )}
         </div>
 
@@ -70,6 +88,7 @@ const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
           )}
         </CardContent>
       </Card>
+      </motion.div>
     </Link>
   );
 };
