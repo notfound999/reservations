@@ -43,7 +43,7 @@ interface AuthModalProps {
   onSuccess?: () => void;
 }
 
-const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
+const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -76,6 +76,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
       toast({ title: 'Welcome back!' });
       onOpenChange(false);
+      onSuccess?.();
     } catch (error: any) {
       // error handling
     } finally {

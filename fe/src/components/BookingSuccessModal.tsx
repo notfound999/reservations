@@ -75,9 +75,15 @@ const BookingSuccessModal = ({
     }
   }, [open]);
 
-  if (!offering) return null;
+  if (!offering || !selectedTime || !selectedDate) return null;
 
   const appointmentDateTime = parse(selectedTime, 'HH:mm', selectedDate);
+
+  // Validate the parsed date
+  if (isNaN(appointmentDateTime.getTime())) {
+    console.error('Invalid date/time:', { selectedDate, selectedTime });
+    return null;
+  }
 
   const handleAddToCalendar = () => {
     try {

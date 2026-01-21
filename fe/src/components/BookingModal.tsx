@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format, addDays, isSameDay, startOfDay, parse, addMinutes, isBefore, endOfDay, formatISO } from 'date-fns';
-import { Clock } from 'lucide-react';
+import { Clock, Loader2 } from 'lucide-react';
 import { SkeletonTimeSlots } from '@/components/ui/skeleton-loader';
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ToastAction } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -114,6 +115,10 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState<{
+    date: Date;
+    time: string;
+  } | null>(null);
 
   // Draft saving hook
   const { hasDraft, saveDraft, clearDraft, restoreDraft } = useBookingDraft(
@@ -146,36 +151,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     fetchBusyBlocks();
   }, [businessId, selectedDate, open, step]);
   
-  // Restore draft when modal opens
-  useEffect(() => {
-    if (open && hasDraft && !draftRestored && offering) {
-      const draft = restoreDraft();
-      if (draft) {
-        toast({
-          title: 'Continue where you left off?',
-          description: 'We found your previous booking attempt.',
-          action: {
-            label: 'Restore',
-            onClick: () => {
-              try {
-                setSelectedDate(new Date(draft.selectedDate));
-                setSelectedSlot(draft.selectedSlot);
-                setNotes(draft.notes);
-                setStep('datetime');
-                setDraftRestored(true);
-                toast({
-                  title: 'Draft restored',
-                  description: 'Your previous selection has been restored.',
-                });
-              } catch (error) {
-                console.error('Failed to restore draft:', error);
-              }
-            },
-          },
-        });
-      }
-    }
-  }, [open, hasDraft, draftRestored, offering, restoreDraft, toast]);
+  // Draft restoration disabled - users found the prompt annoying
 
   // Save draft when state changes (debounced)
   const debouncedDate = useDebounce(selectedDate, 500);
@@ -240,6 +216,12 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
       // Clear draft on successful booking
       clearDraft();
 
+      // Save booking details before resetting
+      setConfirmedBooking({
+        date: selectedDate,
+        time: selectedSlot.time,
+      });
+
       // Close booking modal and show success modal
       onOpenChange(false);
       setShowSuccessModal(true);
@@ -264,6 +246,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     setNotes('');
     setBusyBlocks([]);
     setDraftRestored(false);
+    setConfirmedBooking(null);
   };
 
   const handleClose = () => {
@@ -524,8 +507,8 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         onOpenChange={setShowSuccessModal}
         offering={offering}
         businessName={businessName}
-        selectedDate={selectedDate}
-        selectedTime={selectedSlot?.time || ''}
+        selectedDate={confirmedBooking?.date || new Date()}
+        selectedTime={confirmedBooking?.time || ''}
       />
     </>
   );

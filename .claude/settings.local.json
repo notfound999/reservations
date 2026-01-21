@@ -5,7 +5,10 @@
       "Bash(./mvnw clean:*)",
       "Bash(java:*)",
       "Bash(npm run build:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(grep:*)"
     ]
   }
 }
