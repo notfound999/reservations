@@ -108,14 +108,24 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased leading-relaxed;
     font-family: 'Inter', system-ui, sans-serif;
-    line-height: 1.6;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
-    line-height: 1.3;
+  h1 {
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl font-semibold tracking-tight leading-tight;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl font-semibold leading-tight;
+  }
+
+  h4, h5, h6 {
+    @apply font-semibold tracking-tight leading-tight;
   }
 }
 

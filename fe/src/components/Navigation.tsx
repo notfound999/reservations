@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, User, Menu, X, Building2, Calendar, LogOut, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal, User, Building2, Calendar, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,7 +18,6 @@ const Navigation = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -26,14 +25,13 @@ const Navigation = () => {
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
-      setIsMobileMenuOpen(false);
     }
   };
 
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="container flex h-16 items-center justify-between gap-4">
+        <div className="container flex h-14 md:h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
@@ -68,10 +66,18 @@ const Navigation = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3">
+            {/* Desktop: List your Business button with text */}
             <Link to="/dashboard" className="hidden lg:block">
               <Button variant="ghost" className="gap-2">
                 <Building2 className="h-4 w-4" />
                 List your Business
+              </Button>
+            </Link>
+
+            {/* Mobile: List your Business icon button (always visible) */}
+            <Link to="/dashboard" className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Building2 className="h-5 w-5" />
               </Button>
             </Link>
 
@@ -86,7 +92,7 @@ const Navigation = () => {
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </span>
                     </div>
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4 hidden md:block" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -95,19 +101,12 @@ const Navigation = () => {
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/auth/profile')}>
+                  {/* My Profile only on desktop (mobile has it in bottom nav) */}
+                  <DropdownMenuItem onClick={() => navigate('/auth/profile')} className="md:flex hidden">
                     <User className="mr-2 h-4 w-4" />
                     My Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                    <Building2 className="mr-2 h-4 w-4" />
-                    My Businesses
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/reservations')}>
-                    <Calendar className="mr-2 h-4 w-4" />
-                    My Reservations
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="md:block hidden" />
                   <DropdownMenuItem onClick={logout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
@@ -120,45 +119,8 @@ const Navigation = () => {
                 Sign In
               </Button>
             )}
-
-            {/* Mobile Menu Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
           </div>
         </div>
-
-        {/* Mobile Search & Menu */}
-        {isMobileMenuOpen && (
-          <div className="border-t bg-background p-4 md:hidden animate-slide-up">
-            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-secondary/50"
-                />
-              </div>
-              <Button type="button" variant="outline" size="icon">
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </form>
-            <Link to="/dashboard" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2">
-                <Building2 className="h-4 w-4" />
-                List your Business
-              </Button>
-            </Link>
-          </div>
-        )}
       </header>
 
       <AuthModal open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen} />

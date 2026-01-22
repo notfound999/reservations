@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   format,
   addDays,
@@ -67,13 +67,25 @@ export const BusinessCalendar = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // Start from yesterday (1 day before today relative to currentDate)
-  const viewStart = subDays(startOfDay(currentDate), 1);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(viewStart, i));
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-  const goToPreviousWeek = () => setCurrentDate(subDays(currentDate, 7));
-  const goToNextWeek = () => setCurrentDate(addDays(currentDate, 7));
+  // Show 3 days on mobile, 7 on desktop
+  const daysToShow = isMobile ? 3 : 7;
+
+  // Start from yesterday (1 day before today relative to currentDate) for desktop
+  // Start from today for mobile
+  const viewStart = isMobile ? startOfDay(currentDate) : subDays(startOfDay(currentDate), 1);
+  const weekDays = Array.from({ length: daysToShow }, (_, i) => addDays(viewStart, i));
+
+  const goToPreviousWeek = () => setCurrentDate(subDays(currentDate, daysToShow));
+  const goToNextWeek = () => setCurrentDate(addDays(currentDate, daysToShow));
   const goToToday = () => setCurrentDate(new Date());
 
   // Calculate business hours range from working days
@@ -227,27 +239,28 @@ export const BusinessCalendar = ({
 
   return (
     <>
-      <div className="flex flex-col h-[600px] bg-card rounded-lg border shadow-sm">
+      <div className="flex flex-col h-[600px] md:h-[600px] max-h-[70vh] bg-card rounded-lg border shadow-sm">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToToday}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between px-2 md:px-4 py-2 md:py-3 border-b bg-muted/30 flex-shrink-0 gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
+            <Button variant="outline" size="sm" onClick={goToToday} className="text-xs md:text-sm">
               Today
             </Button>
             <div className="flex items-center">
-              <Button variant="ghost" size="icon" onClick={goToPreviousWeek}>
+              <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8 md:h-10 md:w-10">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={goToNextWeek}>
+              <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8 md:h-10 md:w-10">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <h2 className="text-lg font-semibold">
-              {format(viewStart, 'MMM d')} - {format(addDays(viewStart, 6), 'MMM d, yyyy')}
+            <h2 className="text-sm md:text-lg font-semibold">
+              {format(viewStart, 'MMM d')} - {format(addDays(viewStart, daysToShow - 1), 'MMM d, yyyy')}
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-4 mr-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 justify-between md:justify-end">
+            {/* Legend - hidden on mobile */}
+            <div className="hidden lg:flex items-center gap-3 mr-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded bg-green-100 border border-green-300" />
                 <span>Confirmed</span>
@@ -265,9 +278,10 @@ export const BusinessCalendar = ({
                 <span>Closed</span>
               </div>
             </div>
-            <Button onClick={onAddTimeOff} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Time Off
+            <Button onClick={onAddTimeOff} size="sm" className="text-xs md:text-sm">
+              <Plus className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
+              <span className="hidden md:inline">Add Time Off</span>
+              <span className="md:hidden">Time Off</span>
             </Button>
           </div>
         </div>
@@ -276,7 +290,7 @@ export const BusinessCalendar = ({
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Fixed Day Headers Row */}
           <div className="flex border-b flex-shrink-0">
-            <div className="w-16 flex-shrink-0 border-r bg-muted/20" style={{ height: HEADER_HEIGHT }} />
+            <div className="w-12 md:w-16 flex-shrink-0 border-r bg-muted/20" style={{ height: HEADER_HEIGHT }} />
             <div className="flex flex-1">
               {weekDays.map((day) => {
                 const dayKey = format(day, 'yyyy-MM-dd');
@@ -290,7 +304,7 @@ export const BusinessCalendar = ({
                     key={dayKey}
                     style={{ height: HEADER_HEIGHT }}
                     className={cn(
-                      'flex-1 min-w-[100px] flex flex-col items-center justify-center border-r last:border-r-0 bg-card',
+                      'flex-1 flex flex-col items-center justify-center border-r last:border-r-0 bg-card',
                       isCurrentDay && 'bg-primary/10',
                       isPast && 'bg-muted/50',
                       isDayOff && 'bg-muted/70'
@@ -326,7 +340,7 @@ export const BusinessCalendar = ({
           <div className="flex-1 overflow-auto">
             <div className="flex" style={{ height: totalHeight }}>
               {/* Time Column */}
-              <div className="w-16 flex-shrink-0 border-r bg-muted/20 sticky left-0 z-10">
+              <div className="w-12 md:w-16 flex-shrink-0 border-r bg-muted/20 sticky left-0 z-10">
                 {slots.map((slot, idx) => (
                   <div
                     key={idx}
@@ -337,7 +351,7 @@ export const BusinessCalendar = ({
                     )}
                   >
                     {slot.minute === 0 && (
-                      <span className="absolute -top-2 right-2 text-xs text-muted-foreground font-medium">
+                      <span className="absolute -top-2 right-1 md:right-2 text-[10px] md:text-xs text-muted-foreground font-medium">
                         {format(new Date().setHours(slot.hour, 0), 'h a')}
                       </span>
                     )}
@@ -357,7 +371,7 @@ export const BusinessCalendar = ({
                     <div
                       key={dayKey}
                       className={cn(
-                        'flex-1 min-w-[100px] border-r last:border-r-0 relative'
+                        'flex-1 border-r last:border-r-0 relative'
                       )}
                     >
                       {/* Slot backgrounds (working/closed) */}
@@ -414,16 +428,16 @@ export const BusinessCalendar = ({
                                       </button>
                                     )}
                                     <div className="flex flex-col h-full justify-center">
-                                      <p className="text-xs font-medium truncate leading-tight">
+                                      <p className="text-[10px] md:text-xs font-medium truncate leading-tight">
                                         {event.title}
                                       </p>
                                       {height > SLOT_HEIGHT && (
-                                        <p className="text-[10px] opacity-75 truncate leading-tight">
+                                        <p className="text-[9px] md:text-[10px] opacity-75 truncate leading-tight">
                                           {format(event.start, 'h:mm')} - {format(event.end, 'h:mm a')}
                                         </p>
                                       )}
                                       {height > SLOT_HEIGHT * 2 && event.customerName && (
-                                        <p className="text-[10px] opacity-75 truncate leading-tight">
+                                        <p className="text-[9px] md:text-[10px] opacity-75 truncate leading-tight">
                                           {event.customerName}
                                         </p>
                                       )}

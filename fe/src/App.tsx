@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Navigation from "@/components/Navigation";
+import BottomNav from "@/components/BottomNav";
 import Index from "./pages/Index";
 import BusinessDetail from "./pages/BusinessDetail";
 import Dashboard from "./pages/Dashboard";
@@ -141,9 +142,10 @@ const App = () => (
           <BrowserRouter>
             <div className="min-h-screen flex flex-col">
               <Navigation />
-              <main className="flex-1">
+              <main className="flex-1 pb-16 md:pb-0">
                 <AnimatedRoutes />
               </main>
+              <BottomNav />
             </div>
           </BrowserRouter>
         </TooltipProvider>

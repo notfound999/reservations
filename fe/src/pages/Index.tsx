@@ -90,12 +90,12 @@ const Index = () => {
   }, [businesses, searchQuery, selectedCategory]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24">
       {/* Hero Section */}
-      <section className="bg-hero-gradient py-16 lg:py-24">
-        <div className="container">
+      <section className="bg-hero-gradient py-16 md:py-24">
+        <div className="container px-4 md:px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Book services you'll{' '}
               <span className="text-gradient-warm">love</span>
             </h1>
@@ -126,7 +126,7 @@ const Index = () => {
 
       {/* Categories */}
       <section className="py-8 border-b">
-        <div className="container">
+        <div className="container px-4 md:px-6">
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             {categories.map((category) => (
               <Button
@@ -134,7 +134,7 @@ const Index = () => {
                 variant={selectedCategory === category ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setSelectedCategory(category)}
-                className="whitespace-nowrap rounded-full"
+                className="whitespace-nowrap rounded-full h-11"
               >
                 {category}
               </Button>
@@ -145,8 +145,8 @@ const Index = () => {
 
       {/* Business Grid */}
       <section className="py-12">
-        <div className="container">
-          <div className="flex items-center justify-between mb-8">
+        <div className="container px-4 md:px-6">
+          <div className="flex items-center justify-between mb-6 md:mb-8">
             <div>
               <h2 className="text-2xl font-semibold">
                 {selectedCategory === 'All' ? 'Popular Businesses' : selectedCategory}
@@ -169,7 +169,7 @@ const Index = () => {
               <Button onClick={() => window.location.reload()}>Try Again</Button>
             </div>
           ) : filteredBusinesses.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredBusinesses.map((business) => (
                 <BusinessCard
                   key={business.id}

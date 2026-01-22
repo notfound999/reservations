@@ -22,6 +22,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         warm: "bg-accent text-accent-foreground shadow-soft hover:shadow-warm hover:bg-primary hover:text-primary-foreground active:scale-[0.98]",
         hero: "bg-primary text-primary-foreground shadow-warm text-base font-semibold hover:brightness-105 hover:shadow-hover active:scale-[0.98]",
+        airbnb: "bg-airbnb-primary text-white hover:bg-airbnb-primary-dark shadow-md hover:shadow-lg transition-all active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-5 py-2",

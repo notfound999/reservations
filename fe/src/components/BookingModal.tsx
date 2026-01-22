@@ -25,6 +25,7 @@ import { scheduleApi, reservationsApi } from '@/lib/api';
 import type { Offering, BusyBlock, TimeSlot, SlotStatus } from '@/lib/types';
 import AuthModal from './AuthModal';
 import BookingSuccessModal from './BookingSuccessModal';
+import BookingFlowFullScreen from './BookingFlowFullScreen';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useBookingDraft } from '@/hooks/use-booking-draft';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -105,6 +106,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  // Initialize all hooks unconditionally (required by Rules of Hooks)
   const [step, setStep] = useState<'info' | 'datetime' | 'auth' | 'confirm'>('info');
   const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -253,6 +255,19 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     onOpenChange(false);
     resetModal();
   };
+
+  // Use full-screen flow on mobile (after all hooks are initialized)
+  if (isMobile) {
+    return (
+      <BookingFlowFullScreen
+        open={open}
+        onOpenChange={onOpenChange}
+        offering={offering}
+        businessName={businessName}
+        businessId={businessId}
+      />
+    );
+  }
 
   if (!offering) return null;
 
@@ -451,50 +466,33 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
 
   return (
     <>
-      {/* Mobile: Use Drawer */}
-      {isMobile ? (
-        <Drawer open={open} onOpenChange={handleClose}>
-          <DrawerContent className="max-h-[90vh] px-4 pb-4">
-            <DrawerHeader className="px-0">
-              <DrawerTitle className="text-xl">{title}</DrawerTitle>
-            </DrawerHeader>
-            <div className={cn(
-              "overflow-hidden flex flex-col",
-              step === 'datetime' ? "h-[calc(90vh-120px)]" : "h-auto"
-            )}>
-              {modalContent}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      ) : (
-        /* Desktop: Use Dialog */
-        <Dialog open={open} onOpenChange={handleClose}>
-          <DialogContent className={cn(
-            "sm:max-w-2xl",
-            step === 'datetime' ? "max-h-[85vh] flex flex-col p-0" : "max-h-[90vh]"
-          )}>
-            {step === 'datetime' ? (
-              /* Special layout for datetime step on desktop */
-              <>
-                <DialogHeader className="px-6 pt-6 pb-0 flex-shrink-0">
-                  <DialogTitle className="text-xl">{title}</DialogTitle>
-                </DialogHeader>
-                <div className="flex-1 overflow-hidden flex flex-col px-6 pb-6">
-                  {modalContent}
-                </div>
-              </>
-            ) : (
-              /* Normal layout for other steps */
-              <>
-                <DialogHeader>
-                  <DialogTitle className="text-xl">{title}</DialogTitle>
-                </DialogHeader>
+      {/* Desktop: Use Dialog (mobile is handled by early return above) */}
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className={cn(
+          "sm:max-w-2xl",
+          step === 'datetime' ? "max-h-[85vh] flex flex-col p-0" : "max-h-[90vh]"
+        )}>
+          {step === 'datetime' ? (
+            /* Special layout for datetime step on desktop */
+            <>
+              <DialogHeader className="px-6 pt-6 pb-0 flex-shrink-0">
+                <DialogTitle className="text-xl">{title}</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 overflow-hidden flex flex-col px-6 pb-6">
                 {modalContent}
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
+              </div>
+            </>
+          ) : (
+            /* Normal layout for other steps */
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl">{title}</DialogTitle>
+              </DialogHeader>
+              {modalContent}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AuthModal
         open={showAuthModal}

@@ -63,10 +63,19 @@ export default {
         available: "hsl(var(--available))",
         occupied: "hsl(var(--occupied))",
         closed: "hsl(var(--closed))",
+        'airbnb-primary': 'hsl(348, 100%, 63%)', // #FF385C
+        'airbnb-primary-dark': 'hsl(348, 100%, 53%)', // Hover state
+      },
+      spacing: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
+      boxShadow: {
+        'airbnb': '0 2px 16px rgba(0,0,0,0.12)',
+        'airbnb-hover': '0 4px 24px rgba(0,0,0,0.18)',
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
+        md: "calc(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {

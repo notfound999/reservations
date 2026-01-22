@@ -11,6 +11,8 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BookingModal from '@/components/BookingModal';
 import ReviewModal from '@/components/ReviewModal';
+import BusinessGallery from '@/components/BusinessGallery';
+import ImageLightbox from '@/components/ImageLightbox';
 import { businessApi, offeringsApi, reviewsApi, galleryApi, getBaseUrl } from '@/lib/api';
 import type { Business, Offering, Review, BusinessPhoto } from '@/lib/types';
 import { format } from 'date-fns';
@@ -26,7 +28,8 @@ const BusinessDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [galleryPhotos, setGalleryPhotos] = useState<BusinessPhoto[]>([]);
-  const [lightboxPhoto, setLightboxPhoto] = useState<BusinessPhoto | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const fetchReviews = useCallback(async () => {
     if (!id) return;
@@ -92,6 +95,17 @@ const BusinessDetail = () => {
     return `${getBaseUrl()}${url}`;
   };
 
+  // Get all photos for gallery (business image + gallery photos)
+  const allPhotos = [
+    getImageUrl(business?.imageUrl, 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop'),
+    ...galleryPhotos.map(photo => getImageUrl(photo.url, ''))
+  ].filter(Boolean);
+
+  const handleImageClick = (index: number) => {
+    setLightboxIndex(index);
+    setIsLightboxOpen(true);
+  };
+
   const handleBookService = (offering: Offering) => {
     setSelectedOffering(offering);
     setIsBookingModalOpen(true);
@@ -120,34 +134,32 @@ const BusinessDetail = () => {
 
   return (
     <div className="min-h-screen pb-16">
-      {/* Hero Image */}
-      <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-        <img
-          src={getImageUrl(business.imageUrl, 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop')}
-          alt={business.name}
-          className="w-full h-full object-cover"
+      {/* Gallery Hero */}
+      <div className="relative">
+        <BusinessGallery
+          photos={allPhotos}
+          businessName={business.name}
+          onImageClick={handleImageClick}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-        
-        {/* Back Button */}
-        <Link to="/">
+        {/* Back Button - Overlays the gallery */}
+        <Link to="/" className="absolute top-4 left-4 z-10">
           <Button
             variant="secondary"
             size="icon"
-            className="absolute top-4 left-4 rounded-full bg-background/80 backdrop-blur-sm"
+            className="rounded-full bg-background/90 backdrop-blur-sm hover:bg-background"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
         </Link>
       </div>
 
-      <div className="container px-4 -mt-24 relative z-10">
-        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
+      <div className="container px-4 md:px-6 -mt-16 md:-mt-24 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-4 md:space-y-8">
+          <div className="lg:col-span-2 space-y-6 md:space-y-8">
             {/* Business Info Card */}
-            <Card className="overflow-hidden">
-              <CardContent className="p-4 md:p-6 lg:p-8">
+            <Card className="overflow-hidden shadow-xl">
+              <CardContent className="p-6 md:p-8">
                 <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 md:gap-4 mb-4">
                   <div>
                     {business.category && (
@@ -198,11 +210,11 @@ const BusinessDetail = () => {
                   <h2 className="text-2xl font-semibold">Gallery</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {galleryPhotos.map((photo) => (
+                  {galleryPhotos.map((photo, index) => (
                     <div
                       key={photo.id}
                       className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                      onClick={() => setLightboxPhoto(photo)}
+                      onClick={() => handleImageClick(index + 1)}
                     >
                       <img
                         src={getImageUrl(photo.url, '')}
@@ -227,7 +239,7 @@ const BusinessDetail = () => {
                 <div className="space-y-3 md:space-y-4">
                   {offerings.map((offering) => (
                     <Card key={offering.id} className="overflow-hidden">
-                      <CardContent className="p-4 md:p-5">
+                      <CardContent className="p-5 md:p-6">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
                           <div className="flex-1">
                             <h3 className="font-semibold text-base md:text-lg mb-1">{offering.name}</h3>
@@ -246,7 +258,8 @@ const BusinessDetail = () => {
                           </div>
                           <Button
                             onClick={() => handleBookService(offering)}
-                            variant="warm"
+                            variant="airbnb"
+                            size="lg"
                             className="w-full sm:w-auto"
                           >
                             Book
@@ -328,7 +341,7 @@ const BusinessDetail = () => {
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-24">
               <Card className="shadow-hover">
-                <CardContent className="p-4 md:p-6">
+                <CardContent className="p-6 md:p-8">
                   <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4">Quick Book</h3>
                   <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                     Select a service to book your appointment
@@ -390,35 +403,14 @@ const BusinessDetail = () => {
         />
       )}
 
-      {/* Lightbox Modal */}
-      {lightboxPhoto && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setLightboxPhoto(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
-            onClick={() => setLightboxPhoto(null)}
-          >
-            <X className="h-8 w-8" />
-          </button>
-          <div
-            className="relative max-w-4xl max-h-[90vh] w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={getImageUrl(lightboxPhoto.url, '')}
-              alt={lightboxPhoto.caption || 'Gallery photo'}
-              className="w-full h-full object-contain rounded-lg"
-            />
-            {lightboxPhoto.caption && (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 rounded-b-lg">
-                <p className="text-white text-center">{lightboxPhoto.caption}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Image Lightbox */}
+      <ImageLightbox
+        photos={allPhotos}
+        initialIndex={lightboxIndex || 0}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        businessName={business.name}
+      />
     </div>
   );
 };
