@@ -254,6 +254,15 @@
     display: none;
   }
 
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Respect user's reduced motion preferences */
   @media (prefers-reduced-motion: reduce) {
     *,

@@ -176,7 +176,15 @@ const BookingSuccessModal = ({
 
   const handleViewReservations = () => {
     onOpenChange(false);
-    navigate('/reservations');
+    navigate('/my-reservations');
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    // On mobile, redirect to homepage after closing success modal
+    if (isMobile) {
+      navigate('/');
+    }
   };
 
   const content = (
@@ -288,7 +296,7 @@ const BookingSuccessModal = ({
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={handleClose}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle className="sr-only">Booking Confirmed</DrawerTitle>
@@ -300,7 +308,7 @@ const BookingSuccessModal = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="sr-only">Booking Confirmed</DialogTitle>
