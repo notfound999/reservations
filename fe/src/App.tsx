@@ -1,19 +1,32 @@
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Navigation from "@/components/Navigation";
 import BottomNav from "@/components/BottomNav";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import BusinessDetail from "./pages/BusinessDetail";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import MyReservations from "./pages/MyReservations";
+import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
+
+// Lazy load heavier pages for better initial load performance
+const BusinessDetail = React.lazy(() => import("./pages/BusinessDetail"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const Profile = React.lazy(() => import("./pages/Profile"));
+const MyReservations = React.lazy(() => import("./pages/MyReservations"));
+
+// Loading fallback for lazy-loaded routes
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -62,7 +75,7 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/business/:id"
+          path="/search"
           element={
             <motion.div
               variants={pageVariants}
@@ -70,47 +83,74 @@ const AnimatedRoutes = () => {
               animate="animate"
               exit="exit"
             >
-              <BusinessDetail />
+              <Search />
             </motion.div>
+          }
+        />
+        <Route
+          path="/business/:id"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <BusinessDetail />
+              </motion.div>
+            </Suspense>
           }
         />
         <Route
           path="/dashboard"
           element={
-            <motion.div
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <Dashboard />
-            </motion.div>
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <motion.div
+                  variants={pageVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                >
+                  <Dashboard />
+                </motion.div>
+              </Suspense>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/auth/profile"
           element={
-            <motion.div
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <Profile />
-            </motion.div>
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <motion.div
+                  variants={pageVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                >
+                  <Profile />
+                </motion.div>
+              </Suspense>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/reservations"
           element={
-            <motion.div
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <MyReservations />
-            </motion.div>
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <motion.div
+                  variants={pageVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                >
+                  <MyReservations />
+                </motion.div>
+              </Suspense>
+            </ProtectedRoute>
           }
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

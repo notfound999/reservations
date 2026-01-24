@@ -104,9 +104,9 @@ const Index = () => {
 
           {/* Horizontal Scrolling Container */}
           <div className="relative group">
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x snap-mandatory">
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide scroll-smooth snap-x snap-mandatory">
               {businesses.map((business) => (
-                <div key={business.id} className="flex-none w-[280px] sm:w-[320px] snap-start">
+                <div key={business.id} className="flex-none w-[240px] sm:w-[280px] snap-start">
                   <BusinessCard
                     business={business}
                     lowestPrice={lowestPrices[business.id]}
@@ -163,14 +163,14 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-24">
       {/* Hero Section */}
-      <section className="bg-hero-gradient py-12 md:py-20">
+      <section className="bg-hero-gradient py-8 md:py-20">
         <div className="container px-4 md:px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
+            <h1 className="text-2xl md:text-5xl font-bold tracking-tight mb-3 md:mb-4">
               Book services you'll{' '}
               <span className="text-gradient-warm">love</span>
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-sm md:text-lg text-muted-foreground mb-5 md:mb-8">
               Discover and book appointments at the best local businesses.
               From spas to salons, fitness to pet care – all in one place.
             </p>
@@ -178,17 +178,17 @@ const Index = () => {
             {/* Search Bar */}
             <div className="flex gap-2 max-w-xl mx-auto">
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search businesses or services..."
+                  placeholder="Search businesses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-base bg-card shadow-card"
+                  className="pl-9 md:pl-12 h-10 md:h-14 text-sm md:text-base bg-card shadow-card border-0 rounded-full md:border md:rounded-md"
                 />
               </div>
-              <Button size="lg" className="h-14 px-6" variant="hero">
-                <Search className="h-5 w-5" />
+              <Button size="lg" className="h-10 md:h-14 px-4 md:px-6 rounded-full md:rounded-md" variant="hero">
+                <Search className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </div>
           </div>

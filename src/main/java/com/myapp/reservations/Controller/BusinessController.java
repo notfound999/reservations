@@ -43,7 +43,7 @@ public class BusinessController {
 
     @PostMapping("/create")
     public BusinessResponse createBusiness(@Valid @RequestBody BusinessRequest business) {
-        UUID currentUserId = userService.getCurrentUserId(); // get authenticated user
+        UUID currentUserId = userService.getCurrentUserId();
         return businessService.createBusiness(business, currentUserId);
     }
 

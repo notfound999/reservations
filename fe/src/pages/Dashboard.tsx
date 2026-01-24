@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { businessApi, offeringsApi, scheduleApi, reservationsApi, timeOffApi, fileApi, galleryApi, getBaseUrl } from '@/lib/api';
+import { businessApi, offeringsApi, scheduleApi, reservationsApi, timeOffApi, fileApi, galleryApi, getBaseUrl, extractErrorMessage } from '@/lib/api';
 import type { Business, Offering, ScheduleSettings, WorkingDayRequest, Reservation, TimeOff, CalendarEvent, BusinessType, BusinessPhoto } from '@/lib/types';
 import BusinessCalendar from '@/components/BusinessCalendar';
 import TimeOffModal from '@/components/TimeOffModal';
@@ -256,8 +256,8 @@ const Dashboard = () => {
       businessForm.reset();
 
       toast({ title: 'Business created!', description: 'Your business has been listed.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not create business', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: extractErrorMessage(error), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -280,8 +280,8 @@ const Dashboard = () => {
       offeringForm.reset();
 
       toast({ title: 'Service added!', description: 'Your new service is now available for booking.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not add service', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: extractErrorMessage(error), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -292,8 +292,8 @@ const Dashboard = () => {
       await offeringsApi.delete(id);
       setOfferings(prev => prev.filter(o => o.id !== id));
       toast({ title: 'Service deleted', description: 'The service has been removed.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not delete service', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: extractErrorMessage(error), variant: 'destructive' });
     }
   };
 
@@ -307,8 +307,8 @@ const Dashboard = () => {
         workingDays: workingDays,
       });
       toast({ title: 'Schedule saved!', description: 'Your schedule settings have been updated.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not save schedule', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: extractErrorMessage(error), variant: 'destructive' });
     } finally {
       setIsSavingSchedule(false);
     }
@@ -327,8 +327,8 @@ const Dashboard = () => {
       setSelectedBusiness(updated);
       setBusinesses(prev => prev.map(b => b.id === updated.id ? updated : b));
       toast({ title: 'Settings saved!', description: 'Your business settings have been updated.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not save settings', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: extractErrorMessage(error), variant: 'destructive' });
     } finally {
       setIsSavingSettings(false);
     }
@@ -359,8 +359,8 @@ const Dashboard = () => {
       setSelectedBusiness(prev => prev ? { ...prev, imageUrl: result.url } : null);
       setBusinesses(prev => prev.map(b => b.id === selectedBusiness.id ? { ...b, imageUrl: result.url } : b));
       toast({ title: 'Image uploaded', description: 'Your business profile picture has been updated.' });
-    } catch (error) {
-      toast({ title: 'Upload failed', description: 'Could not upload image', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Upload failed', description: extractErrorMessage(error), variant: 'destructive' });
     } finally {
       setIsUploadingImage(false);
       e.target.value = '';
@@ -377,8 +377,8 @@ const Dashboard = () => {
       setSelectedBusiness(prev => prev ? { ...prev, imageUrl: undefined } : null);
       setBusinesses(prev => prev.map(b => b.id === selectedBusiness.id ? { ...b, imageUrl: undefined } : b));
       toast({ title: 'Image removed', description: 'Your business profile picture has been removed.' });
-    } catch (error) {
-      toast({ title: 'Delete failed', description: 'Could not remove image', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Delete failed', description: extractErrorMessage(error), variant: 'destructive' });
     } finally {
       setIsUploadingImage(false);
     }
@@ -421,8 +421,8 @@ const Dashboard = () => {
       await galleryApi.deletePhoto(photoId);
       setGalleryPhotos(prev => prev.filter(p => p.id !== photoId));
       toast({ title: 'Photo deleted', description: 'Gallery photo has been removed.' });
-    } catch (error) {
-      toast({ title: 'Delete failed', description: 'Could not delete photo', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Delete failed', description: extractErrorMessage(error), variant: 'destructive' });
     }
   };
 
@@ -571,8 +571,8 @@ const Dashboard = () => {
       await timeOffApi.delete(timeOffId);
       setTimeOffs(prev => prev.filter(t => t.id !== timeOffId));
       toast({ title: 'Time off removed', description: 'The time off has been deleted.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not delete time off', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: extractErrorMessage(error), variant: 'destructive' });
     }
   };
 

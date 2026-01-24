@@ -30,8 +30,8 @@ const Navigation = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="container flex h-14 md:h-16 items-center justify-between gap-4">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" role="banner">
+        <nav className="container flex h-14 md:h-16 items-center justify-between gap-4" role="navigation" aria-label="Main navigation">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
@@ -51,6 +51,7 @@ const Navigation = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 h-11 rounded-l-full rounded-r-none border-r-0 bg-secondary/50 focus:bg-background"
+                  aria-label="Search businesses and services"
                 />
               </div>
               <Button
@@ -58,6 +59,7 @@ const Navigation = () => {
                 variant="outline"
                 size="icon"
                 className="h-11 w-11 rounded-r-full rounded-l-none border-l-0 bg-secondary/50 hover:bg-accent"
+                aria-label="Search filters"
               >
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
@@ -75,8 +77,8 @@ const Navigation = () => {
             </Link>
 
             {/* Mobile: List your Business icon button (always visible) */}
-            <Link to="/dashboard" className="md:hidden">
-              <Button variant="ghost" size="icon">
+            <Link to="/dashboard" className="md:hidden" aria-label="Business dashboard">
+              <Button variant="ghost" size="icon" aria-label="List your business">
                 <Building2 className="h-5 w-5" />
               </Button>
             </Link>
@@ -86,13 +88,13 @@ const Navigation = () => {
                 <NotificationBell />
                 <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2 px-3">
+                  <Button variant="outline" className="gap-2 px-3" aria-label="User menu">
                     <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary-foreground">
+                      <span className="text-sm font-medium text-primary-foreground" aria-hidden="true">
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </span>
                     </div>
-                    <ChevronDown className="h-4 w-4 hidden md:block" />
+                    <ChevronDown className="h-4 w-4 hidden md:block" aria-hidden="true" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -120,7 +122,7 @@ const Navigation = () => {
               </Button>
             )}
           </div>
-        </div>
+        </nav>
       </header>
 
       <AuthModal open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen} />

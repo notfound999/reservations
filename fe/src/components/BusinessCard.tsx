@@ -47,7 +47,7 @@ const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
             >
               <Badge
                 variant="secondary"
-                className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm"
+                className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm text-xs px-2 py-0.5"
               >
                 {business.category}
               </Badge>
@@ -56,32 +56,32 @@ const BusinessCard = ({ business, lowestPrice }: BusinessCardProps) => {
         </div>
 
         {/* Content */}
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="font-semibold text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+        <CardContent className="p-3">
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <h3 className="font-semibold text-base leading-tight line-clamp-1 group-hover:text-primary transition-colors">
               {business.name}
             </h3>
             {business.rating && (
               <div className="flex items-center gap-1 shrink-0">
-                <Star className="h-4 w-4 fill-primary text-primary" />
-                <span className="text-sm font-medium">{business.rating.toFixed(1)}</span>
+                <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                <span className="text-xs font-medium">{business.rating.toFixed(1)}</span>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-1 text-muted-foreground text-sm mb-2">
-            <MapPin className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1.5">
+            <MapPin className="h-3 w-3" />
             <span className="line-clamp-1">{business.address}</span>
           </div>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
             {business.description}
           </p>
 
           {lowestPrice !== undefined && (
-            <div className="flex items-center justify-between pt-3 border-t">
-              <span className="text-sm text-muted-foreground">Starting from</span>
-              <span className="font-semibold text-lg text-primary">
+            <div className="flex items-center justify-between pt-2 border-t">
+              <span className="text-xs text-muted-foreground">Starting from</span>
+              <span className="font-semibold text-base text-primary">
                 ${lowestPrice.toFixed(2)}
               </span>
             </div>

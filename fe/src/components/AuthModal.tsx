@@ -15,8 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { authApi } from '@/lib/api';
-import {SignInRequest, UserRequest} from "@/lib/types.ts"; // Ensure this path is correct
+import { authApi, extractErrorMessage } from '@/lib/api';
+import {SignInRequest, UserRequest} from "@/lib/types.ts";
 
 const signInSchema = z.object({
   identifier: z.string().min(1, 'Email or phone is required'),
@@ -78,7 +78,11 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
-      // error handling
+      toast({
+        title: 'Sign in failed',
+        description: extractErrorMessage(error),
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +104,11 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
       toast({ title: 'Success', description: 'Account created! Please sign in.' });
       setMode('signin');
     } catch (error: any) {
-      // error handling
+      toast({
+        title: 'Sign up failed',
+        description: extractErrorMessage(error),
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -118,10 +126,10 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
       }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl">
+            <DialogTitle id="auth-modal-title" className="text-2xl">
               {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="auth-modal-description">
               {mode === 'signin'
                   ? 'Sign in to book services and manage your reservations'
                   : 'Join BookIt to discover and book amazing services'}
@@ -129,7 +137,12 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
           </DialogHeader>
 
           {mode === 'signin' ? (
-              <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 mt-4">
+              <form
+                onSubmit={signInForm.handleSubmit(handleSignIn)}
+                className="space-y-4 mt-4"
+                aria-labelledby="auth-modal-title"
+                aria-describedby="auth-modal-description"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="identifier">Email or Username</Label>
                   <Input
@@ -174,7 +187,12 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
                 </p>
               </form>
           ) : (
-              <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4 mt-4">
+              <form
+                onSubmit={signUpForm.handleSubmit(handleSignUp)}
+                className="space-y-4 mt-4"
+                aria-labelledby="auth-modal-title"
+                aria-describedby="auth-modal-description"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name (used for username)</Label>
                   <Input

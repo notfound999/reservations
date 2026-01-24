@@ -47,14 +47,34 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+// Helper to extract error message from various response formats
+export const extractErrorMessage = (error: any): string => {
+  if (error.response?.data) {
+    const data = error.response.data;
+    // Handle different backend error formats
+    if (typeof data === 'string') return data;
+    if (data.message) return data.message;
+    if (data.error) return data.error;
+    if (data.errors && Array.isArray(data.errors)) {
+      return data.errors.join(', ');
+    }
+  }
+  if (error.message) return error.message;
+  return 'An unexpected error occurred';
+};
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
+      // Add a message to sessionStorage so Index can show it
+      sessionStorage.setItem('authError', 'Session expired. Please log in again.');
       window.location.href = '/';
     }
+    // Attach extracted message to error for easy access
+    error.displayMessage = extractErrorMessage(error);
     return Promise.reject(error);
   }
 );

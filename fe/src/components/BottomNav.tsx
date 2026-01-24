@@ -13,7 +13,7 @@ const BottomNav = () => {
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home, path: '/' },
-    { id: 'search', label: 'Search', icon: Search, path: '/' }, // For now, links to home with search
+    { id: 'search', label: 'Search', icon: Search, path: '/search' },
     { id: 'bookings', label: 'Bookings', icon: Calendar, path: '/reservations', requiresAuth: true },
     { id: 'profile', label: 'Profile', icon: null, path: '/auth/profile', requiresAuth: true, isAvatar: true },
   ];
@@ -25,20 +25,23 @@ const BottomNav = () => {
     }
   };
 
-  const isActive = (path: string) => {
-    if (path === '/') {
+  const isActive = (path: string, tabId: string) => {
+    if (tabId === 'home') {
       return location.pathname === '/';
+    }
+    if (tabId === 'search') {
+      return location.pathname === '/search';
     }
     return location.pathname.startsWith(path);
   };
 
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
-        <div className="grid grid-cols-4 h-16">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe" role="navigation" aria-label="Mobile navigation">
+        <div className="grid grid-cols-4 h-16" role="tablist">
           {tabs.map((tab) => {
             const Icon = tab.icon;
-            const active = isActive(tab.path);
+            const active = isActive(tab.path, tab.id);
 
             return (
               <Link
@@ -49,6 +52,9 @@ const BottomNav = () => {
                   "flex flex-col items-center justify-center gap-1 transition-colors relative",
                   active ? "text-airbnb-primary" : "text-muted-foreground hover:text-foreground"
                 )}
+                role="tab"
+                aria-selected={active}
+                aria-label={tab.label}
               >
                 <motion.div
                   whileTap={{ scale: 0.9 }}
