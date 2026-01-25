@@ -1,6 +1,6 @@
 package com.myapp.reservations.security;
 
-import com.myapp.reservations.Services.CustomUserDetailsService;
+import com.myapp.reservations.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

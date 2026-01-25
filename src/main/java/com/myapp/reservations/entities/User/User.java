@@ -1,7 +1,7 @@
 package com.myapp.reservations.entities.User;
 
 
-import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.businessentity.Business;
 import jakarta.persistence.*;
 import lombok.*;
 

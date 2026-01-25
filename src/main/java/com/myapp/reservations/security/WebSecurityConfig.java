@@ -1,6 +1,6 @@
 package com.myapp.reservations.security;
 
-import com.myapp.reservations.Services.CustomUserDetailsService;
+import com.myapp.reservations.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -9,7 +9,12 @@
       "Bash(npm run dev:*)",
       "Bash(timeout 10 npm run dev)",
       "Bash(grep:*)",
-      "Bash(npm run build:dev:*)"
+      "Bash(npm run build:dev:*)",
+      "Bash(git mv:*)",
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(cmd.exe /c \"dir src\\\\main\\\\java\\\\com\\\\myapp\\\\reservations /B\")",
+      "Bash(git add:*)"
     ]
   }
 }

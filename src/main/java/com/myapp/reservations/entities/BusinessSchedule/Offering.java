@@ -2,7 +2,7 @@ package com.myapp.reservations.entities.BusinessSchedule;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.businessentity.Business;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

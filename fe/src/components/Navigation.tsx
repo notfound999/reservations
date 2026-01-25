@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, User, Building2, Calendar, LogOut, ChevronDown } from 'lucide-react';
+import { User, Building2, Calendar, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,16 +16,7 @@ import NotificationBell from './NotificationBell';
 const Navigation = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-    }
-  };
 
   return (
     <>
@@ -40,33 +30,8 @@ const Navigation = () => {
             <span className="text-xl font-semibold text-gradient-warm hidden sm:block">BookIt</span>
           </Link>
 
-          {/* Search Bar - Center */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl hidden md:flex">
-            <div className="relative w-full flex items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search businesses, services..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 h-11 rounded-l-full rounded-r-none border-r-0 bg-secondary/50 focus:bg-background"
-                  aria-label="Search businesses and services"
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-11 w-11 rounded-r-full rounded-l-none border-l-0 bg-secondary/50 hover:bg-accent"
-                aria-label="Search filters"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-          </form>
-
           {/* Right Actions */}
+          <div className="flex-1"></div>
           <div className="flex items-center gap-3">
             {/* Desktop: List your Business button with text */}
             <Link to="/dashboard" className="hidden lg:block">
@@ -103,6 +68,11 @@ const Navigation = () => {
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
+                  {/* My Reservations only on desktop (mobile has it in bottom nav) */}
+                  <DropdownMenuItem onClick={() => navigate('/reservations')} className="md:flex hidden">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    My Reservations
+                  </DropdownMenuItem>
                   {/* My Profile only on desktop (mobile has it in bottom nav) */}
                   <DropdownMenuItem onClick={() => navigate('/auth/profile')} className="md:flex hidden">
                     <User className="mr-2 h-4 w-4" />

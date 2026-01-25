@@ -1,6 +1,6 @@
 package com.myapp.reservations.entities.Reservation;
 
-import com.myapp.reservations.entities.BusinessEntities.Business;
+import com.myapp.reservations.entities.businessentity.Business;
 import com.myapp.reservations.entities.BusinessSchedule.Offering;
 import com.myapp.reservations.entities.User.User;
 import jakarta.persistence.*;
