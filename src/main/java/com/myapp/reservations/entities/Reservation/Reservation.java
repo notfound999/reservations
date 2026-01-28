@@ -28,7 +28,7 @@ public class Reservation {
     private Business business;
 
     @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false) // Offering (Office, Massage, etc)
+    @JoinColumn(name = "service_id", nullable = false)
     private Offering offering;
 
     @ManyToOne

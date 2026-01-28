@@ -19,7 +19,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) {
-    // Redirect to home with state indicating we should show auth modal
     return <Navigate to="/" state={{ from: location, showAuthModal: true }} replace />;
   }
 

@@ -51,18 +51,15 @@ public class ReservationService {
     private void validateWorkingHours(LocalDateTime startDateTime, LocalDateTime endDateTime, ScheduleSettings settings) {
         DayOfWeek dayOfWeek = startDateTime.getDayOfWeek();
 
-        // 1. Get the rules for this specific day
         WorkingDay config = settings.getWorkingDays().stream()
                 .filter(wd -> wd.getDayOfWeek().equals(dayOfWeek))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Business is not open on this day"));
 
-        // 2. Check if it's a day off
         if (config.isDayOff()) {
             throw new RuntimeException("The business is closed on " + dayOfWeek);
         }
 
-        // 3. Check if start and end times fall within open hours
         LocalTime requestStart = startDateTime.toLocalTime();
         LocalTime requestEnd = endDateTime.toLocalTime();
 
@@ -70,7 +67,6 @@ public class ReservationService {
             throw new RuntimeException("Selected time is outside of business working hours");
         }
 
-        // 4. (Optional) Check for lunch break
         if (config.getBreakStartTime() != null && requestStart.isBefore(config.getBreakEndTime()) && requestEnd.isAfter(config.getBreakStartTime())) {
             throw new RuntimeException("Selected time overlaps with a business break");
         }
@@ -83,7 +79,6 @@ public class ReservationService {
             throw new RuntimeException("Request is empty");
         }
 
-        // Get the offering first to calculate end time
         Offering offering = offeringRepository.findById(reservationRequest.offeringId())
                 .orElseThrow(() -> new RuntimeException("Service Offering Not Found"));
 
@@ -111,7 +106,6 @@ public class ReservationService {
         reservation.setBusiness(business);
         reservation.setOffering(offering);
 
-        // Get user from authenticated context
         UUID currentUserId = userService.getCurrentUserId();
         User user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
@@ -129,7 +123,6 @@ public class ReservationService {
 
         reservationRepository.save(reservation);
 
-        // Send notification to business owner
         String formattedDate = startDateTime.format(DATE_FORMATTER);
         String notificationTitle = schedule.getAutoConfirmAppointments()
                 ? "New Reservation Confirmed"
@@ -153,7 +146,6 @@ public class ReservationService {
                 "/dashboard"
         );
 
-        // Notify customer if auto-confirmed
         if (schedule.getAutoConfirmAppointments()) {
             notificationService.createNotificationForUser(
                     user.getId(),
@@ -161,6 +153,15 @@ public class ReservationService {
                     String.format("Your reservation at %s for '%s' on %s has been confirmed.",
                             business.getName(), offering.getName(), formattedDate),
                     NotificationType.SUCCESS,
+                    "/reservations"
+            );
+        } else {
+            notificationService.createNotificationForUser(
+                    user.getId(),
+                    "Reservation Received",
+                    String.format("Your reservation request at %s for '%s' on %s has been received. The business will review and confirm shortly.",
+                            business.getName(), offering.getName(), formattedDate),
+                    NotificationType.INFO,
                     "/reservations"
             );
         }
@@ -171,7 +172,6 @@ public class ReservationService {
     private void validateAdvanceBookingRequirements(LocalDateTime requestedStart, ScheduleSettings settings) {
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. Check Minimum Advance Booking (e.g., Must book at least 2 hours ahead)
         if (settings.getMinAdvanceBookingHours() != null) {
             LocalDateTime earliestAllowed = now.plusHours(settings.getMinAdvanceBookingHours());
             if (requestedStart.isBefore(earliestAllowed)) {
@@ -180,7 +180,6 @@ public class ReservationService {
             }
         }
 
-        // 2. Check Maximum Advance Booking (e.g., Cannot book more than 30 days out)
         if (settings.getMaxAdvanceBookingDays() != null) {
             LocalDateTime latestAllowed = now.plusDays(settings.getMaxAdvanceBookingDays());
             if (requestedStart.isAfter(latestAllowed)) {
@@ -189,7 +188,6 @@ public class ReservationService {
             }
         }
 
-        // 3. Past Date Check (Sanity check)
         if (requestedStart.isBefore(now)) {
             throw new RuntimeException("Cannot create a reservation for a past date.");
         }
@@ -213,9 +211,7 @@ public class ReservationService {
 
         String formattedDate = reservation.getStartDateTime().format(DATE_FORMATTER);
 
-        // Notify the other party
         if (isCustomer) {
-            // Customer cancelled -> notify business owner
             notificationService.createNotificationForUser(
                     reservation.getBusiness().getOwner().getId(),
                     "Reservation Cancelled",
@@ -227,7 +223,6 @@ public class ReservationService {
                     "/dashboard"
             );
         } else if (isBusinessOwner) {
-            // Business owner cancelled -> notify customer
             notificationService.createNotificationForUser(
                     reservation.getUser().getId(),
                     "Reservation Cancelled",
@@ -260,7 +255,6 @@ public class ReservationService {
 
         String formattedDate = reservation.getStartDateTime().format(DATE_FORMATTER);
 
-        // Notify customer
         notificationService.createNotificationForUser(
                 reservation.getUser().getId(),
                 "Reservation Confirmed",
@@ -295,7 +289,6 @@ public class ReservationService {
         String formattedDate = reservation.getStartDateTime().format(DATE_FORMATTER);
         String reasonText = (reason != null && !reason.isBlank()) ? " Reason: " + reason : "";
 
-        // Notify customer
         notificationService.createNotificationForUser(
                 reservation.getUser().getId(),
                 "Reservation Rejected",

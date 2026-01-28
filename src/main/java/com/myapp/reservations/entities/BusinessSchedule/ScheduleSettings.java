@@ -21,13 +21,9 @@ public class ScheduleSettings {
         @GeneratedValue(strategy = GenerationType.UUID)
         private UUID id;
 
-        // Reservation mode: SLOT (Barber) or RANGE (Office)
         @Enumerated(EnumType.STRING)
         private ReservationType reservationType;
 
-        // Combined Duration:
-        // If SLOT: value is 30, unit is MINUTES.
-        // If RANGE: value is 1, unit is DAYS.
         private Integer slotDurationValue;
 
         @Enumerated(EnumType.STRING)

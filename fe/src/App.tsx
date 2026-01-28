@@ -15,13 +15,11 @@ import Index from "./pages/Index";
 import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 
-// Lazy load heavier pages for better initial load performance
 const BusinessDetail = React.lazy(() => import("./pages/BusinessDetail"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const MyReservations = React.lazy(() => import("./pages/MyReservations"));
 
-// Loading fallback for lazy-loaded routes
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -30,7 +28,6 @@ const PageLoader = () => (
 
 const queryClient = new QueryClient();
 
-// Page transition variants
 const pageVariants = {
   initial: {
     opacity: 0,
@@ -54,7 +51,6 @@ const pageVariants = {
   },
 };
 
-// Animated wrapper for route content
 const AnimatedRoutes = () => {
   const location = useLocation();
 
@@ -153,7 +149,6 @@ const AnimatedRoutes = () => {
             </ProtectedRoute>
           }
         />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route
           path="*"
           element={

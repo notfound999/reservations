@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { createEvent, EventAttributes } from 'ics';
 import { format, parse } from 'date-fns';
 import { Calendar, Share2, Eye, Check, Clock, DollarSign } from 'lucide-react';
@@ -44,42 +41,10 @@ const BookingSuccessModal = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Trigger confetti when modal opens
-  useEffect(() => {
-    if (open) {
-      const duration = 3000;
-      const end = Date.now() + duration;
-
-      const colors = ['#ea580c', '#f97316', '#fb923c', '#fdba74'];
-
-      (function frame() {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: colors,
-        });
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: colors,
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      })();
-    }
-  }, [open]);
-
   if (!offering || !selectedTime || !selectedDate) return null;
 
   const appointmentDateTime = parse(selectedTime, 'HH:mm', selectedDate);
 
-  // Validate the parsed date
   if (isNaN(appointmentDateTime.getTime())) {
     console.error('Invalid date/time:', { selectedDate, selectedTime });
     return null;
@@ -114,7 +79,6 @@ const BookingSuccessModal = ({
           return;
         }
 
-        // Create blob and download
         const blob = new Blob([value], { type: 'text/calendar' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -153,11 +117,9 @@ const BookingSuccessModal = ({
       try {
         await navigator.share(shareData);
       } catch (error) {
-        // User cancelled share
         console.log('Share cancelled');
       }
     } else {
-      // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(shareData.text);
         toast({
@@ -181,7 +143,6 @@ const BookingSuccessModal = ({
 
   const handleClose = () => {
     onOpenChange(false);
-    // On mobile, redirect to homepage after closing success modal
     if (isMobile) {
       navigate('/');
     }
@@ -189,37 +150,20 @@ const BookingSuccessModal = ({
 
   const content = (
     <div className="space-y-6 py-4">
-      {/* Success Icon */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-        className="flex justify-center"
-      >
+      <div className="flex justify-center">
         <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
           <Check className="h-10 w-10 text-primary" />
         </div>
-      </motion.div>
+      </div>
 
-      {/* Success Message */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-center space-y-2"
-      >
+      <div className="text-center space-y-2">
         <h3 className="text-2xl font-bold">Booking Confirmed!</h3>
         <p className="text-muted-foreground">
           Your appointment has been successfully booked
         </p>
-      </motion.div>
+      </div>
 
-      {/* Booking Details Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
+      <div>
         <Card className="border-primary/20 bg-accent/30">
           <CardContent className="p-4 space-y-3">
             <div>
@@ -262,15 +206,9 @@ const BookingSuccessModal = ({
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="space-y-2"
-      >
+      <div className="space-y-2">
         <Button
           onClick={handleAddToCalendar}
           variant="outline"
@@ -290,7 +228,7 @@ const BookingSuccessModal = ({
             View Bookings
           </Button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 

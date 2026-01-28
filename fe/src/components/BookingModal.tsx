@@ -24,7 +24,6 @@ import { useToast } from '@/hooks/use-toast';
 import { scheduleApi, reservationsApi } from '@/lib/api';
 import type { Offering, BusyBlock, TimeSlot, SlotStatus } from '@/lib/types';
 import AuthModal from './AuthModal';
-import BookingSuccessModal from './BookingSuccessModal';
 import BookingFlowFullScreen from './BookingFlowFullScreen';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useBookingDraft } from '@/hooks/use-booking-draft';
@@ -38,7 +37,6 @@ interface BookingModalProps {
   businessId: string;
 }
 
-// Generate time slots for a day
 const generateTimeSlots = (
   date: Date,
   durationMinutes: number,
@@ -50,7 +48,6 @@ const generateTimeSlots = (
   const dayStart = parse(workStart, 'HH:mm', date);
   const dayEnd = parse(workEnd, 'HH:mm', date);
 
-  // Use 10-minute increments for start times
   const INCREMENT_MINUTES = 10;
 
   let current = dayStart;
@@ -58,33 +55,25 @@ const generateTimeSlots = (
   while (isBefore(current, dayEnd)) {
     const slotEnd = addMinutes(current, durationMinutes);
 
-    // Skip if the service would extend beyond working hours
     if (!isBefore(slotEnd, dayEnd) && slotEnd.getTime() !== dayEnd.getTime()) {
       current = addMinutes(current, INCREMENT_MINUTES);
       continue;
     }
 
-    // Format as local datetime (no timezone) for backend LocalDateTime parsing
     const slotDateTime = format(current, "yyyy-MM-dd'T'HH:mm:ss");
 
-    // Check against busy blocks using interval overlap logic
-    // Overlap if: (startA < endB) AND (endA > startB)
     let status: SlotStatus = 'available';
 
     for (const block of busyBlocks) {
-      // Parse block times as local dates (backend sends LocalDateTime without timezone)
       const blockStart = parse(block.start, "yyyy-MM-dd'T'HH:mm:ss", new Date());
       const blockEnd = parse(block.end, "yyyy-MM-dd'T'HH:mm:ss", new Date());
 
-      // Check if [current, slotEnd] overlaps with [blockStart, blockEnd]
-      // Overlap condition: current < blockEnd AND slotEnd > blockStart
       if (current < blockEnd && slotEnd > blockStart) {
         status = block.type === 'CLOSED' ? 'closed' : 'occupied';
         break;
       }
     }
 
-    // Check if slot is in the past
     if (isBefore(current, new Date())) {
       status = 'closed';
     }
@@ -106,7 +95,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Initialize all hooks unconditionally (required by Rules of Hooks)
   const [step, setStep] = useState<'info' | 'datetime' | 'auth' | 'confirm'>('info');
   const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -115,27 +103,19 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
   const [busyBlocks, setBusyBlocks] = useState<BusyBlock[]>([]);
   const [isFetchingSlots, setIsFetchingSlots] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState<{
-    date: Date;
-    time: string;
-  } | null>(null);
 
-  // Draft saving hook
   const { hasDraft, saveDraft, clearDraft, restoreDraft } = useBookingDraft(
     businessId,
     offering?.id || ''
   );
 
-  // Generate dates for the next 14 days
   const availableDates = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i));
 
-  // Fetch busy blocks when date changes
   useEffect(() => {
     const fetchBusyBlocks = async () => {
       if (!open || step !== 'datetime') return;
-      
+
       try {
         setIsFetchingSlots(true);
         const viewStart = startOfDay(selectedDate).toISOString();
@@ -152,10 +132,7 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
 
     fetchBusyBlocks();
   }, [businessId, selectedDate, open, step]);
-  
-  // Draft restoration disabled - users found the prompt annoying
 
-  // Save draft when state changes (debounced)
   const debouncedDate = useDebounce(selectedDate, 500);
   const debouncedSlot = useDebounce(selectedSlot, 500);
   const debouncedNotes = useDebounce(notes, 500);
@@ -170,7 +147,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     }
   }, [debouncedDate, debouncedSlot, debouncedNotes, open, offering, step, saveDraft]);
 
-  // Generate time slots for selected date
   const timeSlots = offering
     ? generateTimeSlots(selectedDate, offering.durationMinutes, busyBlocks)
     : [];
@@ -215,20 +191,15 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         notes: notes || undefined,
       });
 
-      // Clear draft on successful booking
       clearDraft();
 
-      // Save booking details before resetting
-      setConfirmedBooking({
-        date: selectedDate,
-        time: selectedSlot.time,
+      toast({
+        title: 'Booking Confirmed!',
+        description: 'Your reservation has been created. Check notifications for details.',
       });
 
-      // Close booking modal and show success modal
       onOpenChange(false);
-      setShowSuccessModal(true);
 
-      // Reset booking modal for next time
       setTimeout(() => resetModal(), 300);
     } catch (error) {
       toast({
@@ -248,7 +219,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     setNotes('');
     setBusyBlocks([]);
     setDraftRestored(false);
-    setConfirmedBooking(null);
   };
 
   const handleClose = () => {
@@ -256,7 +226,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
     resetModal();
   };
 
-  // Use full-screen flow on mobile (after all hooks are initialized)
   if (isMobile) {
     return (
       <BookingFlowFullScreen
@@ -271,10 +240,8 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
 
   if (!offering) return null;
 
-  // Shared content component
   const modalContent = (
     <>
-      {/* Step 1: Service Info */}
       {step === 'info' && (
         <div className="space-y-6 mt-4">
           <div className="bg-accent/50 rounded-xl p-4">
@@ -302,10 +269,8 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         </div>
       )}
 
-      {/* Step 2: Date & Time Selection */}
       {step === 'datetime' && (
         <div className="flex flex-col min-h-0 flex-1">
-          {/* Sticky Date Picker */}
           <div className="flex-shrink-0 sticky top-0 bg-background z-10 pb-3 border-b md:border-b-0 md:pb-4">
             <Label className="text-xs font-bold mb-2 block uppercase tracking-wide text-muted-foreground">
               Select Date
@@ -336,7 +301,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
             </div>
           </div>
 
-          {/* Scrollable Time Slots */}
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent md:mt-4 min-h-0">
             <div className="space-y-3">
               <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -369,7 +333,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
                     ))}
                   </div>
 
-                  {/* Legend */}
                   <div className="flex items-center gap-3 pb-2 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 rounded bg-card border" />
@@ -389,7 +352,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
             </div>
           </div>
 
-          {/* Action Buttons - Always visible at bottom */}
           <div className="flex gap-3 pt-4 border-t bg-background flex-shrink-0">
             <Button variant="outline" onClick={() => setStep('info')} className="flex-1">
               Back
@@ -405,7 +367,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         </div>
       )}
 
-      {/* Step 3: Confirm */}
       {step === 'confirm' && selectedSlot && (
         <div className="space-y-6 mt-4">
           <div className="bg-accent/50 rounded-xl p-4 space-y-3">
@@ -466,14 +427,12 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
 
   return (
     <>
-      {/* Desktop: Use Dialog (mobile is handled by early return above) */}
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className={cn(
           "sm:max-w-2xl",
           step === 'datetime' ? "max-h-[85vh] flex flex-col p-0" : "max-h-[90vh]"
         )}>
           {step === 'datetime' ? (
-            /* Special layout for datetime step on desktop */
             <>
               <DialogHeader className="px-6 pt-6 pb-0 flex-shrink-0">
                 <DialogTitle className="text-xl">{title}</DialogTitle>
@@ -483,7 +442,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
               </div>
             </>
           ) : (
-            /* Normal layout for other steps */
             <>
               <DialogHeader>
                 <DialogTitle className="text-xl">{title}</DialogTitle>
@@ -498,15 +456,6 @@ const BookingModal = ({ open, onOpenChange, offering, businessName, businessId }
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
         onSuccess={handleAuthSuccess}
-      />
-
-      <BookingSuccessModal
-        open={showSuccessModal}
-        onOpenChange={setShowSuccessModal}
-        offering={offering}
-        businessName={businessName}
-        selectedDate={confirmedBooking?.date || new Date()}
-        selectedTime={confirmedBooking?.time || ''}
       />
     </>
   );

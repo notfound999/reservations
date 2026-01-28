@@ -20,7 +20,7 @@ public class FileStorageService {
     private String uploadDir;
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     public String storeFile(MultipartFile file, String subdirectory) throws IOException {
         validateFile(file);

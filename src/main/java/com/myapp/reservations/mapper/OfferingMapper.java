@@ -18,9 +18,6 @@ public class OfferingMapper {
         offering.setDurationMinutes(request.durationMinutes());
         offering.setBufferTimeMinutes(request.bufferTimeMinutes());
 
-        // Note: The 'business' and 'id' fields are typically set
-        // in the Service layer, not inside the basic mapper.
-
         return offering;
     }
 

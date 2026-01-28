@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom';
 import BusinessCard from '@/components/BusinessCard';
 import type { Business } from '@/lib/types';
 
-// Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
@@ -12,7 +11,6 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
-// Mock the intersection observer hook
 vi.mock('@/hooks/use-intersection-observer', () => ({
   useIntersectionObserver: () => [vi.fn(), true],
 }));

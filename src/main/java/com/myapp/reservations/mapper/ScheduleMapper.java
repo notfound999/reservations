@@ -12,10 +12,6 @@ import java.util.List;
 
 public class ScheduleMapper {
 
-    /**
-     * Converts a ScheduleSettingsRequest into a ScheduleSettings Entity.
-     * Name: toScheduleSettings
-     */
     public static ScheduleSettings toScheduleSettings(ScheduleSettingsRequest request) {
         if (request == null) return null;
 
@@ -58,8 +54,6 @@ public class ScheduleMapper {
         );
     }
 
-    // --- Private Helper Methods for WorkingDay ---
-
     private static WorkingDay toWorkingDay(WorkingDayRequest request, ScheduleSettings settings) {
         WorkingDay day = new WorkingDay();
         day.setDayOfWeek(DayOfWeek.valueOf(request.dayOfWeek().toUpperCase()));
@@ -68,7 +62,7 @@ public class ScheduleMapper {
         day.setBreakStartTime(request.breakStartTime());
         day.setBreakEndTime(request.breakEndTime());
         day.setDayOff(request.isDayOff());
-        day.setScheduleSettings(settings); // Link back to parent
+        day.setScheduleSettings(settings);
         return day;
     }
 

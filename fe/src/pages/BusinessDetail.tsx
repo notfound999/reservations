@@ -49,8 +49,6 @@ const BusinessDetail = () => {
         setIsLoading(true);
         setError(null);
 
-        // 1. Fetch the Essential Data first
-        // We keep these together because the page needs them to function
         const [businessData, offeringsData] = await Promise.all([
           businessApi.getById(id),
           offeringsApi.getByBusiness(id),
@@ -59,8 +57,6 @@ const BusinessDetail = () => {
         setBusiness(businessData);
         setOfferings(offeringsData);
 
-        // 2. Fetch Reviews and Gallery separately so if they fail,
-        // it doesn't crash the whole page
         try {
           const reviewsData = await reviewsApi.getByBusiness(id);
           setReviews(reviewsData);
@@ -88,14 +84,12 @@ const BusinessDetail = () => {
     fetchData();
   }, [id]);
 
-  // Helper to get full image URL
   const getImageUrl = (url: string | undefined, fallback: string) => {
     if (!url) return fallback;
     if (url.startsWith('http')) return url;
     return `${getBaseUrl()}${url}`;
   };
 
-  // Get all photos for gallery (business image + gallery photos)
   const allPhotos = [
     getImageUrl(business?.imageUrl, 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop'),
     ...galleryPhotos.map(photo => getImageUrl(photo.url, ''))

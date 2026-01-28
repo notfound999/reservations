@@ -95,7 +95,6 @@ const Dashboard = () => {
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
-  // Working days form state
   const [workingDays, setWorkingDays] = useState<WorkingDayRequest[]>([]);
   const [scheduleFormData, setScheduleFormData] = useState({
     minAdvanceBookingHours: 2,

@@ -19,6 +19,6 @@ public record BusinessResponse(
         List<OfferingResponse> offerings,
         BusinessType businessType,
         String customType,
-        String category, // Display name computed from businessType
+        String category,
         String imageUrl
 ) {}

@@ -2,12 +2,10 @@ import '@testing-library/jest-dom';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
-// Automatically cleanup after each test
 afterEach(() => {
   cleanup();
 });
 
-// Mock window.matchMedia for components that use media queries
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: (query: string) => ({
@@ -22,7 +20,6 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
-// Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}

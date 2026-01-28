@@ -21,7 +21,6 @@ export function useIntersectionObserver(
     const element = elementRef.current;
     if (!element) return;
 
-    // If already visible and should freeze, don't create observer
     if (freezeOnceVisible && isVisible) return;
 
     const observer = new IntersectionObserver(
@@ -29,7 +28,6 @@ export function useIntersectionObserver(
         const isElementVisible = entry.isIntersecting;
         setIsVisible(isElementVisible);
 
-        // If freezeOnceVisible and element is visible, disconnect observer
         if (freezeOnceVisible && isElementVisible) {
           observer.disconnect();
         }

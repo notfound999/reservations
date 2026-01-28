@@ -36,7 +36,6 @@ public class ScheduleService {
     }
 
     public void createDefaultSchedule(Business business) {
-        // 1. Create the Settings object
         ScheduleSettings settings = new ScheduleSettings();
         settings.setSlotDurationValue(30);
         settings.setSlotDurationUnit(ChronoUnit.MINUTES);
@@ -45,11 +44,8 @@ public class ScheduleService {
         settings.setMinAdvanceBookingHours(2);
         settings.setMaxAdvanceBookingDays(30);
 
-        // 2. IMPORTANT: Link the Business (The field you asked about)
-        // This connects the ScheduleSettings back to its owner
         settings.setBusiness(business);
 
-        // 3. Generate exactly 7 days
         List<WorkingDay> days = new ArrayList<>();
         for (DayOfWeek day : DayOfWeek.values()) {
             WorkingDay wd = new WorkingDay();
@@ -57,17 +53,14 @@ public class ScheduleService {
             wd.setStartTime(LocalTime.of(9, 0));
             wd.setEndTime(LocalTime.of(17, 0));
 
-            // Set weekends as Day Off by default
             wd.setDayOff(day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY);
 
-            // Link the WorkingDay to the ScheduleSettings
             wd.setScheduleSettings(settings);
             days.add(wd);
         }
 
         settings.setWorkingDays(days);
 
-        // CRITICAL: Link the ScheduleSettings to the Business for cascade persistence
         business.setScheduleSettings(settings);
     }
 
@@ -109,26 +102,22 @@ public class ScheduleService {
     }
 
     private void updateDayDetails(WorkingDay entity, WorkingDayRequest req) {
-        // Map data from DTO to Entity
         entity.setStartTime(req.startTime());
         entity.setEndTime(req.endTime());
         entity.setBreakStartTime(req.breakStartTime());
         entity.setBreakEndTime(req.breakEndTime());
         entity.setDayOff(req.isDayOff());
 
-        // ONLY validate times if the business is actually open that day
         if (!entity.isDayOff()) {
             validateWorkingHours(entity);
         }
     }
 
     private void validateWorkingHours(WorkingDay day) {
-        // Logic: Start < End
         if (day.getStartTime().isAfter(day.getEndTime())) {
             throw new IllegalArgumentException("Opening time must be before closing time for " + day.getDayOfWeek());
         }
 
-        // Logic: Start < BreakStart < BreakEnd < End
         if (day.getBreakStartTime() != null && day.getBreakEndTime() != null) {
             if (day.getBreakStartTime().isAfter(day.getBreakEndTime())) {
                 throw new IllegalArgumentException("Break start must be before break end for " + day.getDayOfWeek());

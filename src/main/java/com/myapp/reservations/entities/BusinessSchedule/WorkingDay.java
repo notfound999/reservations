@@ -21,17 +21,15 @@ public class WorkingDay {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    private DayOfWeek dayOfWeek; // MONDAY, TUESDAY...
+    private DayOfWeek dayOfWeek;
 
-    private LocalTime startTime; // 09:00
-    private LocalTime endTime;   // 17:00
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    // "Lunch Break" or "Siesta"
-    // Many businesses close for an hour in the middle of the day
     private LocalTime breakStartTime;
     private LocalTime breakEndTime;
 
-    private boolean isDayOff; // If true, ignore times.
+    private boolean isDayOff;
 
     @ManyToOne
     @JoinColumn(name = "schedule_settings_id")

@@ -15,5 +15,5 @@ public record ProfileUpdateRequest(
         String phone,
 
         @Size(min = 8, message = "Password must be at least 8 characters")
-        String password  // Optional - only update if provided
+        String password
 ) {}

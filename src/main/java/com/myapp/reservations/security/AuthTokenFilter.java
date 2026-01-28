@@ -42,12 +42,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 final UUID userId = jwtUtil.getUserIdFromToken(jwt);
                 final UserDetails userDetails;
 
-                // Prefer loading by userId (more stable) over username (can change)
                 if (userId != null) {
                     userDetails = customUserDetailsService.loadUserById(userId);
                     request.setAttribute(USER_ID_ATTRIBUTE, userId);
                 } else {
-                    // Fallback for old tokens without userId
                     final String username = jwtUtil.getUserFromToken(jwt);
                     userDetails = customUserDetailsService.loadUserByUsername(username);
                 }

@@ -21,5 +21,5 @@ public record BusinessRequest(
         @NotNull(message = "Business type is required")
         BusinessType businessType,
 
-        String customType // Optional, used when businessType is OTHER
+        String customType
 ) {}

@@ -132,7 +132,6 @@ public class UserService {
         if (request.email() != null) existing.setEmail(request.email());
         if (request.phone() != null) existing.setPhone(request.phone());
 
-        // Only update password if provided
         if (request.password() != null && !request.password().isBlank()) {
             existing.setPassword(passwordEncoder.encode(request.password()));
         }
@@ -142,7 +141,6 @@ public class UserService {
     }
 
     public UUID getCurrentUserId() {
-        // First try to get userId from request attribute (set by AuthTokenFilter from JWT)
         ServletRequestAttributes requestAttributes =
             (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
@@ -154,7 +152,6 @@ public class UserService {
             }
         }
 
-        // Fallback to name lookup for backward compatibility with old tokens
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByName(auth.getName());
         if (user == null) {

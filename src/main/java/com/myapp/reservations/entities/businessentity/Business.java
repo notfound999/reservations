@@ -45,7 +45,7 @@ public class Business {
     private BusinessType businessType;
 
     @Column(name = "custom_type")
-    private String customType; // Used when businessType is OTHER
+    private String customType;
 
     @Column(name = "image_path")
     private String imagePath;
@@ -62,8 +62,8 @@ public class Business {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(
-            name = "schedule_settings_id", // Name of the column in the 'businesses' table
-            referencedColumnName = "id"    // Name of the ID field inside 'ScheduleSettings' class
+            name = "schedule_settings_id",
+            referencedColumnName = "id"
     )
     private ScheduleSettings scheduleSettings;
 
@@ -87,6 +87,6 @@ public class Business {
 
     public void addOffering(Offering offering) {
         this.offerings.add(offering);
-        offering.setBusiness(this); // Set the back-reference here!
+        offering.setBusiness(this);
     }
 }

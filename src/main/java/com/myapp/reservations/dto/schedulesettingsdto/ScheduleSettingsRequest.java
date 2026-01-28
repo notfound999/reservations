@@ -9,7 +9,7 @@ import java.util.List;
 public record ScheduleSettingsRequest(
         ReservationType reservationType,
         @Min(1) Integer slotDurationValue,
-        java.time.temporal.ChronoUnit slotDurationUnit, // e.g., MINUTES, HOURS, DAYS
+        java.time.temporal.ChronoUnit slotDurationUnit,
         @Min(0) Integer minAdvanceBookingHours,
         @Min(1) Integer maxAdvanceBookingDays,
         Boolean autoConfirmAppointments,

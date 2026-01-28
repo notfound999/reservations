@@ -4,7 +4,6 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 
-// Mock the auth context values
 const mockUseAuth = vi.fn();
 
 vi.mock('@/contexts/AuthContext', async () => {
@@ -46,7 +45,6 @@ describe('ProtectedRoute', () => {
 
     renderWithRouter();
 
-    // Should show loading spinner (Loader2 component renders an SVG)
     expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
   });
 
@@ -69,7 +67,6 @@ describe('ProtectedRoute', () => {
 
     renderWithRouter();
 
-    // Should redirect to home page
     expect(screen.getByText('Home Page')).toBeInTheDocument();
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
   });

@@ -21,11 +21,10 @@ public class TimeOff {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // Specific calendar dates/times
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 
-    private String reason; // e.g., "National Holiday", "Emergency"
+    private String reason;
 
     @ManyToOne
     @JoinColumn(name = "schedule_settings_id")

@@ -41,7 +41,7 @@ public class Offering {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "b_id", nullable = false)
-    @JsonIgnore // CRITICAL: Prevents infinite loop when loading Business -> Service -> Business
+    @JsonIgnore
     private Business business;
 }
 

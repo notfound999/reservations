@@ -7,10 +7,6 @@ import com.myapp.reservations.entities.BusinessSchedule.TimeOff;
 
 public class TimeOffMapper {
 
-    /**
-     * Converts a TimeOffRequest into a TimeOff Entity.
-     * Name: toTimeOff
-     */
     public static TimeOff toTimeOff(TimeOffRequest request, ScheduleSettings settings) {
         if (request == null) {
             return null;
@@ -21,16 +17,11 @@ public class TimeOffMapper {
         timeOff.setEndDateTime(request.endDateTime());
         timeOff.setReason(request.reason());
 
-        // Establishes the relationship for the database foreign key
         timeOff.setScheduleSettings(settings);
 
         return timeOff;
     }
 
-    /**
-     * Converts a TimeOff Entity into a TimeOffResponse Record.
-     * Name: toResponse
-     */
     public static TimeOffResponse toResponse(TimeOff entity) {
         if (entity == null) {
             return null;

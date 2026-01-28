@@ -14,7 +14,11 @@
       "Bash(find:*)",
       "Bash(dir:*)",
       "Bash(cmd.exe /c \"dir src\\\\main\\\\java\\\\com\\\\myapp\\\\reservations /B\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(if [ -d \".idea\" ])",
+      "Bash(then rm -rf .idea/)",
+      "Bash(fi)"
     ]
   }
 }

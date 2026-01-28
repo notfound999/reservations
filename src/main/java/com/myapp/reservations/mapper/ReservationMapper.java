@@ -12,10 +12,6 @@ import java.time.LocalDateTime;
 
 public class ReservationMapper {
 
-    /**
-     * Converts Request DTO + Entities into the Reservation Entity
-     * Used during the CREATE process.
-     */
     public static Reservation toReservation(ReservationRequest request, Business business, Offering offering, User user) {
         if (request == null) return null;
 
@@ -24,10 +20,8 @@ public class ReservationMapper {
         reservation.setOffering(offering);
         reservation.setUser(user);
 
-        // 1. Set the Start
         reservation.setStartDateTime(request.startTime());
 
-        // 2. Calculate endDateTime from the offering duration
         if (offering != null && offering.getDurationMinutes() != null) {
             reservation.setEndDateTime(request.startTime().plusMinutes(offering.getDurationMinutes()));
         }

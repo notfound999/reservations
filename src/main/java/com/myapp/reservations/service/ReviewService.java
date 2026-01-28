@@ -40,7 +40,6 @@ public class ReviewService {
     public ReviewResponse createReview(UUID businessId, ReviewRequest request) {
         UUID currentUserId = userService.getCurrentUserId();
 
-        // Check if user already reviewed this business
         if (reviewRepository.existsByBusinessIdAndUserId(businessId, currentUserId)) {
             throw new RuntimeException("You have already reviewed this business");
         }
@@ -68,7 +67,7 @@ public class ReviewService {
                 review.getBusiness().getId(),
                 review.getUser().getId(),
                 review.getUser().getName(),
-                null, // userAvatar - not implemented yet
+                null,
                 review.getRating(),
                 review.getComment(),
                 review.getCreatedAt()

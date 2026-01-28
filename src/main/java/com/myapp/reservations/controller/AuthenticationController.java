@@ -62,13 +62,11 @@ public class AuthenticationController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // Get the full user details to return in response
         User authenticatedUser = userRepository.findByName(userDetails.getUsername());
         if(authenticatedUser == null){
             throw new RuntimeException("User not found");
         }
 
-        // Generate token with userId included
         String token = jwtUtils.generateToken(userDetails.getUsername(), authenticatedUser.getId());
         UserResponse userResponse = userService.findById(authenticatedUser.getId());
 
@@ -82,7 +80,6 @@ public class AuthenticationController {
         }
         UserResponse newUser = userService.createUser(user);
 
-        // Generate token with userId included
         String token = jwtUtils.generateToken(user.name(), java.util.UUID.fromString(newUser.id().toString()));
 
         return new AuthResponse(token, newUser);

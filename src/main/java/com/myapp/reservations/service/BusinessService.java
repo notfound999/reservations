@@ -71,11 +71,10 @@ public class BusinessService {
     public BusinessResponse createBusiness(BusinessRequest request, UUID currentUserId) {
         if (request == null) return null;
 
-        // Set owner from current authenticated user
         User owner = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
 
-        Business business = BusinessMapper.toBusiness(request, owner); // no admins here
+        Business business = BusinessMapper.toBusiness(request, owner);
         scheduleService.createDefaultSchedule(business);
         Business savedBusiness = businessRepository.save(business);
         if(!owner.getRoles().contains("BUSINESS_OWNER")) {
@@ -95,7 +94,7 @@ public class BusinessService {
         if (request.address() != null) existing.setAddress(request.address());
         if (request.phone() != null) existing.setPhone(request.phone());
         if (request.businessType() != null) existing.setBusinessType(request.businessType());
-        existing.setCustomType(request.customType()); // Can be null
+        existing.setCustomType(request.customType());
 
         Business saved = businessRepository.save(existing);
         return BusinessMapper.toResponse(saved);
@@ -127,12 +126,10 @@ public class BusinessService {
         Business business = businessRepository.findById(businessId)
                 .orElseThrow(() -> new RuntimeException("Business not found"));
 
-        // Check if user is owner
         if (business.getOwner().getId().equals(userId)) {
             return true;
         }
 
-        // Check if user is admin
         return business.getAdmins().stream()
                 .anyMatch(admin -> admin.getId().equals(userId));
     }

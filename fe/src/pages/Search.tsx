@@ -30,7 +30,6 @@ const Search = () => {
         const data = await businessApi.getAll();
         setBusinesses(data);
 
-        // Fetch lowest prices for each business
         const prices: Record<string, number> = {};
         await Promise.all(
           data.map(async (business) => {
@@ -40,7 +39,6 @@ const Search = () => {
                 prices[business.id] = Math.min(...offerings.map(o => o.price));
               }
             } catch {
-              // Silently handle individual business offering fetch errors
             }
           })
         );
@@ -80,7 +78,6 @@ const Search = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Fixed Search Header */}
       <div className="sticky top-0 z-50 bg-background border-b">
         <div className="flex items-center gap-3 p-4">
           <Button

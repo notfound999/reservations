@@ -83,10 +83,8 @@ public class BusinessPhotoService {
             throw new RuntimeException("Not authorized to delete this photo");
         }
 
-        // Delete the file
         fileStorageService.deleteFile(photo.getFilePath());
 
-        // Delete the database record
         photoRepository.delete(photo);
     }
 

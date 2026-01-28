@@ -56,7 +56,6 @@ public class FileController {
             @RequestParam("file") MultipartFile file) {
         try {
             UUID userId = userService.getCurrentUserId();
-            // Verify ownership
             if (!businessService.isOwnerOrAdmin(businessId, userId)) {
                 return ResponseEntity.status(403).body(Map.of("error", "Not authorized"));
             }
@@ -107,8 +106,6 @@ public class FileController {
             return ResponseEntity.internalServerError().body(Map.of("error", "Failed to delete file"));
         }
     }
-
-    // ===== Business Gallery Photos =====
 
     @GetMapping("/business-photos/{businessId}")
     public ResponseEntity<List<BusinessPhotoResponse>> getBusinessPhotos(@PathVariable UUID businessId) {

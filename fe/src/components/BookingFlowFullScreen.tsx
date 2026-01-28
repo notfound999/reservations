@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { startOfDay } from 'date-fns';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { reservationsApi } from '@/lib/api';
@@ -12,7 +11,6 @@ import DateTimeStep from './booking-steps/DateTimeStep';
 import ConfirmStep from './booking-steps/ConfirmStep';
 import BookingStickyFooter from './booking-steps/BookingStickyFooter';
 import AuthModal from './AuthModal';
-import BookingSuccessModal from './BookingSuccessModal';
 
 interface BookingFlowFullScreenProps {
   open: boolean;
@@ -40,13 +38,7 @@ const BookingFlowFullScreen = ({
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState<{
-    date: Date;
-    time: string;
-  } | null>(null);
 
-  // Disable body scroll when modal is open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -67,7 +59,6 @@ const BookingFlowFullScreen = ({
   };
 
   const handleClose = () => {
-    // Reset state
     setStep('info');
     setSelectedDate(startOfDay(new Date()));
     setSelectedSlot(null);
@@ -104,15 +95,12 @@ const BookingFlowFullScreen = ({
         notes: notes || undefined,
       });
 
-      // Save booking details before resetting
-      setConfirmedBooking({
-        date: selectedDate,
-        time: selectedSlot.time,
+      toast({
+        title: 'Booking Confirmed!',
+        description: 'Your reservation has been created. Check notifications for details.',
       });
 
-      // Close booking flow and show success modal
       handleClose();
-      setShowSuccessModal(true);
     } catch (error) {
       toast({
         title: 'Booking Failed',
@@ -129,17 +117,9 @@ const BookingFlowFullScreen = ({
   const stepNumber = step === 'info' ? 1 : step === 'datetime' ? 2 : 3;
   const totalSteps = 3;
 
-  // Page transition variants
-  const pageVariants = {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
-  };
-
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-background flex flex-col overflow-hidden">
-        {/* Header */}
         <BookingHeader
           currentStep={stepNumber}
           totalSteps={totalSteps}
@@ -148,21 +128,10 @@ const BookingFlowFullScreen = ({
           canGoBack={step !== 'info'}
         />
 
-        {/* Progress Bar */}
         <BookingProgress currentStep={stepNumber} totalSteps={totalSteps} />
 
-        {/* Step Content */}
         <div className="flex-1 overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.2 }}
-              className="h-full"
-            >
+          <div className="h-full">
             {step === 'info' && (
               <ServiceInfoStep offering={offering} businessName={businessName} />
             )}
@@ -189,11 +158,9 @@ const BookingFlowFullScreen = ({
                 onEditDateTime={() => setStep('datetime')}
               />
             )}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </div>
 
-        {/* Footer */}
         <BookingStickyFooter
           onBack={step !== 'info' ? handleBack : undefined}
           onContinue={step === 'confirm' ? handleConfirmBooking : handleContinue}
@@ -204,21 +171,10 @@ const BookingFlowFullScreen = ({
         />
       </div>
 
-      {/* Auth Modal */}
       <AuthModal
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
         onSuccess={handleAuthSuccess}
-      />
-
-      {/* Success Modal */}
-      <BookingSuccessModal
-        open={showSuccessModal}
-        onOpenChange={setShowSuccessModal}
-        offering={offering}
-        businessName={businessName}
-        selectedDate={confirmedBooking?.date || new Date()}
-        selectedTime={confirmedBooking?.time || ''}
       />
     </>
   );

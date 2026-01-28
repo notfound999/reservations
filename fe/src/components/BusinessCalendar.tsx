@@ -35,10 +35,9 @@ interface BusinessCalendarProps {
   onDeleteTimeOff?: (eventId: string) => void;
 }
 
-const SLOT_HEIGHT = 30; // pixels per 30-min slot
+const SLOT_HEIGHT = 30;
 const HEADER_HEIGHT = 60;
 
-// Map day names to day of week numbers (0 = Sunday, 1 = Monday, etc.)
 const DAY_MAP: Record<string, number> = {
   SUNDAY: 0,
   MONDAY: 1,
@@ -49,13 +48,11 @@ const DAY_MAP: Record<string, number> = {
   SATURDAY: 6,
 };
 
-// Parse time string "HH:mm" to minutes from midnight
 const parseTimeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 };
 
-// Get hour from minutes
 const minutesToHour = (minutes: number): number => Math.floor(minutes / 60);
 
 export const BusinessCalendar = ({
@@ -69,18 +66,14 @@ export const BusinessCalendar = ({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Show 3 days on mobile, 7 on desktop
   const daysToShow = isMobile ? 3 : 7;
 
-  // Start from yesterday (1 day before today relative to currentDate) for desktop
-  // Start from today for mobile
   const viewStart = isMobile ? startOfDay(currentDate) : subDays(startOfDay(currentDate), 1);
   const weekDays = Array.from({ length: daysToShow }, (_, i) => addDays(viewStart, i));
 
@@ -88,10 +81,8 @@ export const BusinessCalendar = ({
   const goToNextWeek = () => setCurrentDate(addDays(currentDate, daysToShow));
   const goToToday = () => setCurrentDate(new Date());
 
-  // Calculate business hours range from working days
   const { startHour, endHour, slots } = useMemo(() => {
     if (workingDays.length === 0) {
-      // Default: 9 AM to 6 PM
       const defaultStart = 9;
       const defaultEnd = 18;
       const slotCount = (defaultEnd - defaultStart) * 2; // 30-min slots

@@ -62,7 +62,6 @@ const BottomNav = () => {
                   className="relative"
                 >
                   {tab.isAvatar ? (
-                    // Avatar for profile tab
                     <div className={cn(
                       "h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold",
                       active ? "bg-airbnb-primary text-white" : "bg-muted text-muted-foreground"
@@ -70,7 +69,6 @@ const BottomNav = () => {
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   ) : (
-                    // Icon for other tabs
                     Icon && <Icon className="h-6 w-6" />
                   )}
                   {active && (

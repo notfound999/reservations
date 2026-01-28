@@ -40,14 +40,12 @@ const Profile = () => {
     defaultValues: { name: '', email: '', phone: '' },
   });
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
-  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -58,7 +56,6 @@ const Profile = () => {
           email: data.email,
           phone: data.phone || '',
         });
-        // Set avatar URL if available
         if (data.avatarUrl) {
           setAvatarUrl(data.avatarUrl.startsWith('http') ? data.avatarUrl : `${getBaseUrl()}${data.avatarUrl}`);
         }
@@ -69,7 +66,6 @@ const Profile = () => {
         });
       } catch (err) {
         console.error('Error fetching profile:', err);
-        // Fall back to auth context data
         if (user) {
           setProfileData({
             name: user.name,

@@ -58,13 +58,10 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Lejo login/signup
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // 2. Allow access to uploaded files (images)
                         .requestMatchers("/uploads/**").permitAll()
 
-                        // 3. Lejo leximin e bizneseve, shërbimeve dhe orareve për të gjithë (Public)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/businesses/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/offerings/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/availabilities/**").permitAll()
@@ -72,7 +69,6 @@ public class WebSecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reviews/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/business-photos/**").permitAll()
 
-                        // 4. Çdo gjë tjetër (POST reservations, UPDATE profile, etj.) kërkon login
                         .anyRequest().authenticated()
                 );
 
@@ -83,7 +79,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(","))); // Configurable CORS origins
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

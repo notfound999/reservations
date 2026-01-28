@@ -23,10 +23,8 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-// Export the base URL without /api for image URLs
 export const getBaseUrl = () => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-  // Remove /api from the end to get base URL for images
   return apiUrl.replace(/\/api$/, '');
 };
 
@@ -37,21 +35,17 @@ const api = axios.create({
   },
 });
 
-// Add auth token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
-  // Only send the header if the token is a real JWT (contains dots)
-  // Real JWTs look like: xxxxx.yyyyy.zzzzz
   if (token && token.includes('.')) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
-// Helper to extract error message from various response formats
+
 export const extractErrorMessage = (error: any): string => {
   if (error.response?.data) {
     const data = error.response.data;
-    // Handle different backend error formats
     if (typeof data === 'string') return data;
     if (data.message) return data.message;
     if (data.error) return data.error;
@@ -69,17 +63,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
-      // Add a message to sessionStorage so Index can show it
       sessionStorage.setItem('authError', 'Session expired. Please log in again.');
       window.location.href = '/';
     }
-    // Attach extracted message to error for easy access
     error.displayMessage = extractErrorMessage(error);
     return Promise.reject(error);
   }
 );
 
-// ===== Auth API =====
 export const authApi = {
   signIn: async (data: SignInRequest): Promise<AuthResponse> => {
     const response = await api.post('/auth/signin', data);
@@ -97,7 +88,6 @@ export const authApi = {
   },
 };
 
-// ===== User API =====
 export const userApi = {
   getProfile: async (): Promise<User> => {
     const response = await api.get('/me');
@@ -109,7 +99,6 @@ export const userApi = {
   },
 };
 
-// ===== Business API =====
 export const businessApi = {
   getAll: async (): Promise<Business[]> => {
     const response = await api.get('/businesses');
@@ -137,7 +126,6 @@ export const businessApi = {
   },
 };
 
-// ===== Offerings API =====
 export const offeringsApi = {
   getByBusiness: async (businessId: string): Promise<Offering[]> => {
     const response = await api.get(`/offerings/business/${businessId}`);
@@ -159,7 +147,6 @@ export const offeringsApi = {
   },
 };
 
-// ===== Schedule API =====
 export const scheduleApi = {
   getSettings: async (businessId: string): Promise<ScheduleSettings> => {
     const response = await api.get(`/schedules/business/${businessId}`);
@@ -183,7 +170,6 @@ export const scheduleApi = {
   },
 };
 
-// ===== Reservations API =====
 export const reservationsApi = {
   create: async (data: ReservationRequest): Promise<Reservation> => {
     const response = await api.post('/reservations/create', data);
@@ -215,7 +201,6 @@ export const reservationsApi = {
   },
 };
 
-// ===== Reviews API =====
 export const reviewsApi = {
   getByBusiness: async (businessId: string): Promise<Review[]> => {
     const response = await api.get(`/reviews/${businessId}`);
@@ -228,7 +213,6 @@ export const reviewsApi = {
   },
 };
 
-// ===== Time Off API =====
 export const timeOffApi = {
   getByBusiness: async (businessId: string): Promise<TimeOff[]> => {
     const response = await api.get(`/time-off/business/${businessId}`);
@@ -244,7 +228,6 @@ export const timeOffApi = {
   },
 };
 
-// ===== File Upload API =====
 export const fileApi = {
   uploadUserAvatar: async (file: File): Promise<{ path: string; url: string }> => {
     const formData = new FormData();
@@ -273,7 +256,6 @@ export const fileApi = {
   },
 };
 
-// ===== Business Gallery API =====
 export const galleryApi = {
   getPhotos: async (businessId: string): Promise<BusinessPhoto[]> => {
     const response = await api.get(`/files/business-photos/${businessId}`);
@@ -302,7 +284,6 @@ export const galleryApi = {
   },
 };
 
-// ===== Notifications API =====
 export const notificationsApi = {
   getAll: async (): Promise<Notification[]> => {
     const response = await api.get('/notifications');

@@ -62,10 +62,8 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
   const handleSignIn = async (values: SignInForm) => {
     setIsLoading(true);
     try {
-      // Map the form values to the API request
-      // We use a clean object to satisfy the 'SignInRequest' type
       const payload: SignInRequest = {
-        identifier: values.identifier, // Map identifier to username for Java
+        identifier: values.identifier,
         password: values.password
       };
 
@@ -91,7 +89,6 @@ const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => {
   const handleSignUp = async (values: SignUpForm) => {
     setIsLoading(true);
     try {
-      // Map the form values to the clean UserRequest DTO
       const payload: UserRequest = {
         name: values.name,
         email: values.email,

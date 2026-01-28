@@ -38,14 +38,12 @@ const MyReservations = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
-  // Fetch reservations
   useEffect(() => {
     const fetchReservations = async () => {
       try {
@@ -65,7 +63,6 @@ const MyReservations = () => {
     }
   }, [isAuthenticated, toast]);
 
-  // Split reservations into upcoming and past
   const { upcoming, past } = useMemo(() => {
     const now = new Date();
     const upcomingList: Reservation[] = [];
@@ -80,7 +77,6 @@ const MyReservations = () => {
       }
     });
 
-    // Sort upcoming by date ascending, past by date descending
     upcomingList.sort((a, b) => parseISO(a.startDateTime).getTime() - parseISO(b.startDateTime).getTime());
     pastList.sort((a, b) => parseISO(b.startDateTime).getTime() - parseISO(a.startDateTime).getTime());
 

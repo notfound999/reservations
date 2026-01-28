@@ -31,11 +31,10 @@ public class ReservationController {
 
     }
 
-    // This endpoint allows: PATCH http://localhost:8080/api/reservations/{id}/cancel
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelReservation(@PathVariable UUID id) {
         reservationService.cancelReservation(id);
-        return ResponseEntity.noContent().build(); // 204 No Content is standard for successful updates with no body
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/mine")
